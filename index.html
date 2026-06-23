@@ -262,6 +262,25 @@
     align-items: start;
   }
 
+  .file-controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    align-items: stretch;
+    max-width: 520px;
+  }
+
+  .file-controls > div,
+  .file-controls button {
+    width: 100%;
+  }
+
+  .file-controls input,
+  .file-controls select {
+    width: 100%;
+  }
+
+
   label {
     display: block;
     color: var(--muted);
@@ -817,6 +836,18 @@
     min-width: 150px;
   }
 
+
+  .height-pair {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .height-pair span {
+    color: var(--muted);
+    font-size: 14px;
+  }
 </style>
 </head>
 <body>
@@ -849,16 +880,17 @@
 
       <div class="file-controls">
         <div>
-          <label for="fileSelect">Open saved user</label>
-          <select id="fileSelect"></select>
-        </div>
-        <button id="openFileBtn" class="secondary">Open selected file</button>
-
-        <div>
           <label for="newFileTitle">New user title</label>
           <input id="newFileTitle" type="text">
         </div>
         <button id="newFileBtn">Start new user</button>
+
+        <div>
+          <label for="fileSelect">Open saved user</label>
+          <select id="fileSelect"></select>
+        </div>
+        <button id="openFileBtn" class="secondary">Open selected user</button>
+
         <button id="renameFileBtn" class="secondary">Rename current user</button>
         <button id="deleteFileBtn" class="danger">Delete current user</button>
       </div>
@@ -884,7 +916,7 @@
           </div>
         </div>
         <div>
-          <label for="newWeight">Weight kg</label>
+          <label id="newWeightLabel" for="newWeight">Weight kg</label>
           <input id="newWeight" type="number" step="0.1">
         </div>
         <div>
@@ -939,7 +971,7 @@
             <thead>
               <tr>
                 <th>Date</th>
-                <th>Weight kg</th>
+                <th id="weightTableHeader">Weight kg</th>
                 <th>Dose</th>
                 <th>Note</th>
                 <th>Action</th>
@@ -968,16 +1000,44 @@
             <input id="titleInput" type="text">
           </div>
           <div>
-            <label for="yMinInput">Y-axis min kg</label>
+            <label for="weightUnitInput">Weight units</label>
+            <select id="weightUnitInput">
+              <option value="kg">Kilograms (kg)</option>
+              <option value="lb">Pounds (lb)</option>
+            </select>
+          </div>
+          <div>
+            <label for="heightUnitInput">Height units</label>
+            <select id="heightUnitInput">
+              <option value="m">Metres (m)</option>
+              <option value="cm">Centimetres (cm)</option>
+              <option value="ftin">Feet + inches</option>
+            </select>
+          </div>
+          <div>
+            <label id="yMinLabel" for="yMinInput">Y-axis min kg</label>
             <input id="yMinInput" type="number" step="0.1" value="75">
           </div>
           <div>
-            <label for="yMaxInput">Y-axis max kg</label>
+            <label id="yMaxLabel" for="yMaxInput">Y-axis max kg</label>
             <input id="yMaxInput" type="number" step="0.1" value="105">
           </div>
-          <div>
+          <div id="heightMetricWrap">
             <label for="heightInput">Height m for BMI bands</label>
             <input id="heightInput" type="number" step="0.01" value="1.75">
+          </div>
+          <div id="heightCmWrap" style="display:none;">
+            <label for="heightCmInput">Height cm for BMI bands</label>
+            <input id="heightCmInput" type="number" step="0.1" value="175">
+          </div>
+          <div id="heightImperialWrap" style="display:none;">
+            <label>Height for BMI bands</label>
+            <div class="height-pair">
+              <input id="heightFeetInput" type="number" step="1" min="0" value="5" aria-label="Feet">
+              <span>ft</span>
+              <input id="heightInchesInput" type="number" step="0.1" min="0" max="11.9" value="9" aria-label="Inches">
+              <span>in</span>
+            </div>
           </div>
           <div>
             <label for="showNotesInput">Notes on graph</label>
@@ -1095,6 +1155,59 @@
 
 <script>
 const EMPTY_CSV = `Date,Weight kg,Dose mg,Note`;
+const EXAMPLE_USER_TITLE = "Chunkr Christoph";
+const EXAMPLE_USER_CSV = `Date,Weight kg,Dose mg,Note
+2026-01-01,90.0,,Starting point
+2026-01-03,,1.0,
+2026-01-09,89.5,1.5,
+2026-01-12,89.5,,
+2026-01-14,,1.5,
+2026-01-15,89.6,,
+2026-01-22,,2.0,
+2026-01-23,85.9,,
+2026-01-28,85.9,,
+2026-01-29,,2.5,Appetite lower
+2026-02-01,86.0,,
+2026-02-05,85.3,,
+2026-02-06,,3.0,
+2026-02-09,84.6,,
+2026-02-13,,3.0,
+2026-02-17,86.9,,
+2026-02-19,,3.5,
+2026-02-20,85.0,,
+2026-02-26,,4.0,
+2026-02-28,82.3,,
+2026-03-02,,,Travel week
+2026-03-05,,4.0,
+2026-03-08,80.2,,
+2026-03-11,,4.5,
+2026-03-15,81.8,,
+2026-03-18,81.8,5.0,
+2026-03-23,,5.5,
+2026-03-25,81.4,,
+2026-03-31,81.3,,
+2026-04-01,,5.5,
+2026-04-03,80.0,,Good run of exercise
+2026-04-06,79.3,,
+2026-04-07,,6.0,
+2026-04-09,77.2,,
+2026-04-13,77.3,,
+2026-04-16,,6.5,
+2026-04-17,77.4,,
+2026-04-22,,6.5,
+2026-04-24,76.6,,
+2026-04-28,,7.0,
+2026-05-01,78.0,,
+2026-05-04,76.7,,
+2026-05-06,,7.5,
+2026-05-11,75.6,,
+2026-05-14,,8.0,
+2026-05-15,73.6,,
+2026-05-21,,8.0,
+2026-05-23,71.4,,
+2026-05-30,,8.5,
+2026-05-31,72.1,,
+2026-06-01,72.3,,Five month point`;
 
 const THEME_PALETTES = {
   dark: {
@@ -1142,15 +1255,18 @@ const DEFAULT_SETTINGS = {
   yMin: 75,
   yMax: 105,
   heightM: 1.75,
+  weightUnit: "kg",
+  heightUnit: "m",
   theme: "light",
   colours: structuredClone(THEME_PALETTES.light),
   doseColours: {},
-  showNotes: false
+  showNotes: false,
+  yAutoRangedOnce: false
 };
 
 // New storage key for this revision.
-const STORAGE_FILES_KEY = "weight_progress_chart_named_files_v19";
-const STORAGE_ACTIVE_FILE_KEY = "weight_progress_chart_active_file_v19";
+const STORAGE_FILES_KEY = "weight_progress_chart_named_files_v25";
+const STORAGE_ACTIVE_FILE_KEY = "weight_progress_chart_active_file_v25";
 
 const csvBox = document.getElementById("csvBox");
 const statusBox = document.getElementById("status");
@@ -1169,6 +1285,130 @@ function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
+function kgToLb(kg) {
+  return Number(kg) * 2.2046226218;
+}
+
+function lbToKg(lb) {
+  return Number(lb) / 2.2046226218;
+}
+
+function mToFtIn(m) {
+  const totalInches = Number(m) / 0.0254;
+  const feet = Math.floor(totalInches / 12);
+  const inches = totalInches - feet * 12;
+  return { feet, inches };
+}
+
+function ftInToM(feet, inches) {
+  return ((Number(feet) || 0) * 12 + (Number(inches) || 0)) * 0.0254;
+}
+
+function weightUnitFromInput() {
+  return document.getElementById("weightUnitInput")?.value === "lb" ? "lb" : "kg";
+}
+
+function heightUnitFromInput() {
+  const value = document.getElementById("heightUnitInput")?.value;
+  return value === "cm" || value === "ftin" ? value : "m";
+}
+
+function weightKgToDisplay(kg, weightUnit = weightUnitFromInput()) {
+  return weightUnit === "lb" ? kgToLb(kg) : Number(kg);
+}
+
+function weightDisplayToKg(weight, weightUnit = weightUnitFromInput()) {
+  return weightUnit === "lb" ? lbToKg(weight) : Number(weight);
+}
+
+function unitWeightLabel(weightUnit = weightUnitFromInput()) {
+  return weightUnit === "lb" ? "lb" : "kg";
+}
+
+function formatDisplayWeight(kg, weightUnit = weightUnitFromInput()) {
+  const value = weightKgToDisplay(kg, weightUnit);
+  return Number.isFinite(value) ? value.toFixed(1) : "";
+}
+
+function heightDisplayToM(heightUnit = heightUnitFromInput()) {
+  if (heightUnit === "cm") {
+    return Number(document.getElementById("heightCmInput").value) / 100;
+  }
+
+  if (heightUnit === "ftin") {
+    return ftInToM(document.getElementById("heightFeetInput").value, document.getElementById("heightInchesInput").value);
+  }
+
+  return Number(document.getElementById("heightInput").value);
+}
+
+function putHeightIntoInputs(heightM) {
+  const m = Number(heightM) || DEFAULT_SETTINGS.heightM;
+  document.getElementById("heightInput").value = m.toFixed(2);
+  document.getElementById("heightCmInput").value = (m * 100).toFixed(1);
+
+  const heightParts = mToFtIn(m);
+  document.getElementById("heightFeetInput").value = heightParts.feet;
+  document.getElementById("heightInchesInput").value = heightParts.inches.toFixed(1);
+}
+
+function updateUnitLabels() {
+  const weightUnit = weightUnitFromInput();
+  const heightUnit = heightUnitFromInput();
+
+  const newWeightLabel = document.getElementById("newWeightLabel");
+  if (newWeightLabel) newWeightLabel.textContent = `Weight ${unitWeightLabel(weightUnit)}`;
+
+  const tableHeader = document.getElementById("weightTableHeader");
+  if (tableHeader) tableHeader.textContent = `Weight ${unitWeightLabel(weightUnit)}`;
+
+  const yMinLabel = document.getElementById("yMinLabel");
+  const yMaxLabel = document.getElementById("yMaxLabel");
+  if (yMinLabel) yMinLabel.textContent = `Y-axis min ${unitWeightLabel(weightUnit)}`;
+  if (yMaxLabel) yMaxLabel.textContent = `Y-axis max ${unitWeightLabel(weightUnit)}`;
+
+  const metricWrap = document.getElementById("heightMetricWrap");
+  const cmWrap = document.getElementById("heightCmWrap");
+  const imperialWrap = document.getElementById("heightImperialWrap");
+  if (metricWrap) metricWrap.style.display = heightUnit === "m" ? "" : "none";
+  if (cmWrap) cmWrap.style.display = heightUnit === "cm" ? "" : "none";
+  if (imperialWrap) imperialWrap.style.display = heightUnit === "ftin" ? "" : "none";
+
+  const newWeight = document.getElementById("newWeight");
+  if (newWeight) newWeight.step = weightUnit === "lb" ? "0.2" : "0.1";
+
+  document.querySelectorAll(".row-weight").forEach(input => {
+    input.step = weightUnit === "lb" ? "0.2" : "0.1";
+  });
+}
+
+function convertVisibleWeightFields(fromUnit, toUnit) {
+  if (fromUnit === toUnit) return;
+
+  const yMinInput = document.getElementById("yMinInput");
+  const yMaxInput = document.getElementById("yMaxInput");
+
+  const yMinShown = Number(yMinInput.value);
+  const yMaxShown = Number(yMaxInput.value);
+
+  if (Number.isFinite(yMinShown)) {
+    const yMinKg = weightDisplayToKg(yMinShown, fromUnit);
+    yMinInput.value = weightKgToDisplay(yMinKg, toUnit).toFixed(1);
+  }
+
+  if (Number.isFinite(yMaxShown)) {
+    const yMaxKg = weightDisplayToKg(yMaxShown, fromUnit);
+    yMaxInput.value = weightKgToDisplay(yMaxKg, toUnit).toFixed(1);
+  }
+
+  renderTable(parseCsv(csvBox.value || EMPTY_CSV));
+  updateUnitLabels();
+}
+
+function convertVisibleHeightFields() {
+  putHeightIntoInputs(heightDisplayToM());
+  updateUnitLabels();
+}
 
 function clearErrors() {
   document.querySelectorAll(".error-field").forEach(el => el.classList.remove("error-field"));
@@ -1235,19 +1475,76 @@ function saveFiles(files) {
   localStorage.setItem(STORAGE_FILES_KEY, JSON.stringify(files));
 }
 
-function makeDefaultFile(title) {
+function makeDefaultFile(title, csv = EMPTY_CSV) {
   const settings = clone(DEFAULT_SETTINGS);
   settings.title = `${title} (Updated to [latest date])`;
   settings.theme = document.getElementById("themeToggle").checked ? "light" : "dark";
   settings.colours = clone(THEME_PALETTES[settings.theme]);
   settings.doseColours = {};
+  settings.yAutoRangedOnce = false;
   return {
-    csv: EMPTY_CSV,
+    csv,
     settings,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
 }
+
+function ensureExampleUser(files) {
+  const needsExampleRepair =
+    !files[EXAMPLE_USER_TITLE] ||
+    !files[EXAMPLE_USER_TITLE].csv ||
+    files[EXAMPLE_USER_TITLE].csv.includes("\\n");
+
+  if (needsExampleRepair) {
+    const example = makeDefaultFile(EXAMPLE_USER_TITLE, EXAMPLE_USER_CSV);
+    example.settings.title = `${EXAMPLE_USER_TITLE} (Example data)`;
+    example.settings.yMin = 68;
+    example.settings.yMax = 94;
+    example.settings.yAutoRangedOnce = true;
+    files[EXAMPLE_USER_TITLE] = example;
+    saveFiles(files);
+  }
+  return files;
+}
+
+function autoRangeForFirstWeightIfNeeded(row) {
+  if (!activeFileTitle || !row || row.weight === null) return;
+
+  const files = loadFiles();
+  const file = files[activeFileTitle];
+  if (!file || activeFileTitle === EXAMPLE_USER_TITLE) return;
+
+  const settings = mergeSettings(file.settings || DEFAULT_SETTINGS);
+  if (settings.yAutoRangedOnce) return;
+
+  const allRows = parseCsv(csvBox.value);
+  const weightRows = allRows.filter(r => r.weight !== null);
+  if (weightRows.length !== 1) return;
+
+  const weight = Number(row.weight);
+  if (!Number.isFinite(weight)) return;
+
+  const padding = Math.max(5, Math.ceil(weight * 0.08));
+  const yMin = Math.max(0, Math.floor(weight - padding));
+  const yMax = Math.ceil(weight + padding);
+
+  const weightUnit = weightUnitFromInput();
+  document.getElementById("yMinInput").value = weightKgToDisplay(yMin, weightUnit).toFixed(1);
+  document.getElementById("yMaxInput").value = weightKgToDisplay(yMax, weightUnit).toFixed(1);
+
+  settings.yMin = yMin;
+  settings.yMax = yMax;
+  settings.yAutoRangedOnce = true;
+
+  file.settings = settings;
+  file.updatedAt = new Date().toISOString();
+  files[activeFileTitle] = file;
+  saveFiles(files);
+
+  activeFileStatus.textContent = `Y axis auto-set from first weight: ${weightKgToDisplay(yMin, weightUnit).toFixed(1)}–${weightKgToDisplay(yMax, weightUnit).toFixed(1)} ${unitWeightLabel(weightUnit)}.`;
+}
+
 
 function fileExistsCaseInsensitive(files, title, ignoreTitle = "") {
   const wanted = title.toLowerCase();
@@ -1268,7 +1565,7 @@ function requireActiveFile() {
 }
 
 function updateFileSelector() {
-  const files = loadFiles();
+  const files = ensureExampleUser(loadFiles());
   const titles = Object.keys(files).sort((a, b) => a.localeCompare(b));
   fileSelect.innerHTML = "";
 
@@ -1488,9 +1785,14 @@ function mergeSettings(saved) {
   if (saved) {
     Object.assign(settings, saved);
     settings.theme = saved.theme === "light" ? "light" : "dark";
+    settings.weightUnit = saved.weightUnit === "lb" || saved.unitSystem === "imperial" ? "lb" : "kg";
+    settings.heightUnit = saved.heightUnit === "cm" || saved.heightUnit === "ftin"
+      ? saved.heightUnit
+      : (saved.unitSystem === "imperial" ? "ftin" : "m");
     settings.colours = Object.assign({}, THEME_PALETTES[settings.theme], saved.colours || {});
     settings.doseColours = Object.assign({}, saved.doseColours || {});
     settings.showNotes = !!saved.showNotes;
+    settings.yAutoRangedOnce = !!saved.yAutoRangedOnce;
   }
   return settings;
 }
@@ -1730,12 +2032,20 @@ function renderDoseLegend(doses, doseColours) {
 
 function getSettingsFromInputsWithoutDoseRead() {
   const theme = document.getElementById("themeToggle").checked ? "light" : "dark";
+  const weightUnit = weightUnitFromInput();
+  const heightUnit = heightUnitFromInput();
+
+  const yMinShown = Number(document.getElementById("yMinInput").value);
+  const yMaxShown = Number(document.getElementById("yMaxInput").value);
+  const heightM = heightDisplayToM(heightUnit);
 
   const settings = {
     title: document.getElementById("titleInput").value.trim() || DEFAULT_SETTINGS.title,
-    yMin: Number(document.getElementById("yMinInput").value),
-    yMax: Number(document.getElementById("yMaxInput").value),
-    heightM: Number(document.getElementById("heightInput").value),
+    yMin: weightDisplayToKg(yMinShown, weightUnit),
+    yMax: weightDisplayToKg(yMaxShown, weightUnit),
+    heightM,
+    weightUnit,
+    heightUnit,
     theme,
     colours: {
       overallBg: document.getElementById("overallBgColour").value,
@@ -1754,11 +2064,11 @@ function getSettingsFromInputsWithoutDoseRead() {
     showNotes: document.getElementById("showNotesInput") ? document.getElementById("showNotesInput").checked : false
   };
 
-  if (!Number.isFinite(settings.yMin)) {
+  if (!Number.isFinite(yMinShown)) {
     markError("yMinInput", "Y-axis minimum must be a number.");
     settings.yMin = DEFAULT_SETTINGS.yMin;
   }
-  if (!Number.isFinite(settings.yMax)) {
+  if (!Number.isFinite(yMaxShown)) {
     markError("yMaxInput", "Y-axis maximum must be a number.");
     settings.yMax = DEFAULT_SETTINGS.yMax;
   }
@@ -1769,7 +2079,7 @@ function getSettingsFromInputsWithoutDoseRead() {
     settings.yMax = DEFAULT_SETTINGS.yMax;
   }
   if (!Number.isFinite(settings.heightM) || settings.heightM <= 0) {
-    markError("heightInput", "Height must be a number above zero.");
+    markError(heightUnit === "ftin" ? "heightFeetInput" : (heightUnit === "cm" ? "heightCmInput" : "heightInput"), "Height must be a number above zero.");
     settings.heightM = DEFAULT_SETTINGS.heightM;
   }
 
@@ -1785,10 +2095,29 @@ function getSettingsFromInputs() {
 }
 
 function putSettingsIntoInputs(settings) {
+  const weightUnit = settings.weightUnit === "lb" || settings.weightUnit === "imperial" ? "lb" : "kg";
+  const heightUnit = settings.heightUnit === "cm" || settings.heightUnit === "ftin"
+    ? settings.heightUnit
+    : (settings.weightUnit === "imperial" ? "ftin" : "m");
+
+  const weightSelect = document.getElementById("weightUnitInput");
+  if (weightSelect) {
+    weightSelect.value = weightUnit;
+    weightSelect.dataset.currentWeightUnit = weightUnit;
+  }
+
+  const heightSelect = document.getElementById("heightUnitInput");
+  if (heightSelect) {
+    heightSelect.value = heightUnit;
+    heightSelect.dataset.currentHeightUnit = heightUnit;
+  }
+
   document.getElementById("titleInput").value = settings.title;
-  document.getElementById("yMinInput").value = settings.yMin;
-  document.getElementById("yMaxInput").value = settings.yMax;
-  document.getElementById("heightInput").value = settings.heightM;
+  document.getElementById("yMinInput").value = weightKgToDisplay(settings.yMin, weightUnit).toFixed(1);
+  document.getElementById("yMaxInput").value = weightKgToDisplay(settings.yMax, weightUnit).toFixed(1);
+  putHeightIntoInputs(settings.heightM);
+
+  updateUnitLabels();
   if (document.getElementById("showNotesInput")) document.getElementById("showNotesInput").checked = !!settings.showNotes;
 
   document.getElementById("overallBgColour").value = settings.colours.overallBg;
@@ -1977,9 +2306,12 @@ function drawChart(skipTableRender = false) {
   ctx.globalAlpha = settings.theme === "light" ? 0.35 : 0.25;
   ctx.lineWidth = 1.4;
 
-  const yStep = chooseYStep(yMax - yMin);
-  const firstTick = Math.ceil(yMin / yStep) * yStep;
-  for (let kg = firstTick; kg <= yMax + 0.0001; kg += yStep) {
+  const displayYMin = weightKgToDisplay(yMin, settings.weightUnit);
+  const displayYMax = weightKgToDisplay(yMax, settings.weightUnit);
+  const yDisplayStep = chooseYStep(displayYMax - displayYMin);
+  const firstDisplayTick = Math.ceil(displayYMin / yDisplayStep) * yDisplayStep;
+  for (let shown = firstDisplayTick; shown <= displayYMax + 0.0001; shown += yDisplayStep) {
+    const kg = weightDisplayToKg(shown, settings.weightUnit);
     const y = yScale(kg);
     ctx.beginPath();
     ctx.moveTo(plotX, y);
@@ -2017,8 +2349,9 @@ function drawChart(skipTableRender = false) {
   ctx.font = "28px system-ui, sans-serif";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
-  for (let kg = firstTick; kg <= yMax + 0.0001; kg += yStep) {
-    ctx.fillText(formatTick(kg), plotX - 20, yScale(kg));
+  for (let shown = firstDisplayTick; shown <= displayYMax + 0.0001; shown += yDisplayStep) {
+    const kg = weightDisplayToKg(shown, settings.weightUnit);
+    ctx.fillText(formatTick(shown), plotX - 20, yScale(kg));
   }
   ctx.restore();
 
@@ -2112,10 +2445,10 @@ function drawChart(skipTableRender = false) {
   ctx.textBaseline = "middle";
   ctx.translate(38, plotY + plotH / 2);
   ctx.rotate(-Math.PI / 2);
-  ctx.fillText("Weight (kg)", 0, 0);
+  ctx.fillText(`Weight (${unitWeightLabel(settings.weightUnit)})`, 0, 0);
   ctx.restore();
 
-  statusBox.textContent = `Saved under "${activeFileTitle}". ${weightRows.length} weight readings. ${doseRows.length} dose markers. Latest weight: ${latestWeight.dateString} = ${latestWeight.weight.toFixed(1)}kg.`;
+  statusBox.textContent = `Saved under "${activeFileTitle}". ${weightRows.length} weight readings. ${doseRows.length} dose markers. Latest weight: ${latestWeight.dateString} = ${formatDisplayWeight(latestWeight.weight, settings.weightUnit)}${unitWeightLabel(settings.weightUnit)}.`;
 
   if (!skipTableRender) renderTable(rows);
 }
@@ -2137,8 +2470,8 @@ function renderTable(rows) {
     const weightInput = document.createElement("input");
     weightInput.type = "number";
     weightInput.step = "0.1";
-    weightInput.value = r.weight === null ? "" : r.weight.toFixed(1);
-    weightInput.className = "row-input";
+    weightInput.value = r.weight === null ? "" : formatDisplayWeight(r.weight);
+    weightInput.className = "row-input row-weight";
     weightTd.appendChild(weightInput);
 
     const doseTd = document.createElement("td");
@@ -2201,7 +2534,7 @@ function rowsFromTable() {
     const weightRaw = inputs[1].value.trim();
     const doseRaw = inputs[2].value.trim();
     const note = inputs[3] ? inputs[3].value.trim() : "";
-    const weight = weightRaw === "" ? null : Number(weightRaw);
+    const weight = weightRaw === "" ? null : weightDisplayToKg(Number(weightRaw));
     const dose = doseRaw === "" ? null : Number(doseRaw);
 
     rows.push({
@@ -2221,6 +2554,7 @@ function saveTableChanges() {
   if (!requireActiveFile()) return;
   const rows = rowsFromTable();
   csvBox.value = toCsv(rows);
+  setDownloadDateDefaults(rows);
   drawChart();
 }
 
@@ -2229,6 +2563,7 @@ function deleteRowByIndex(index) {
   const rows = parseCsv(csvBox.value);
   rows.splice(index, 1);
   csvBox.value = toCsv(rows);
+  setDownloadDateDefaults(rows);
   drawChart();
 }
 
@@ -2274,7 +2609,7 @@ function addOrUpdateRow() {
   const rows = parseCsv(csvBox.value);
   const existing = rows.find(r => r.dateString === d);
 
-  const weight = wStr === "" ? null : Number(wStr);
+  const weight = wStr === "" ? null : weightDisplayToKg(Number(wStr));
   const dose = doseStr === "" ? null : Number(doseStr);
 
   const row = {
@@ -2295,6 +2630,7 @@ function addOrUpdateRow() {
 
   rows.sort((a, b) => a.date - b.date);
   csvBox.value = toCsv(rows);
+  autoRangeForFirstWeightIfNeeded(row);
   drawChart();
   prepareNextEntryDate(d);
 }
@@ -2533,6 +2869,7 @@ let choonActiveNodes = [];
 let choonIsPlaying = false;
 let choonPlayIndex = -1;
 let choonRunId = 0;
+let choonAudioUnlocked = false;
 let chartRangeOverride = null;
 
 function clearChoonTimers() {
@@ -2593,36 +2930,57 @@ function midiForWeight(weight, minWeight, maxWeight) {
 function testChoonKeys() {
   stopChoon(false);
 
-  choonAudioContext = choonAudioContext || new (window.AudioContext || window.webkitAudioContext)();
-  if (choonAudioContext.state === "suspended") choonAudioContext.resume();
-
-  const ctx = choonAudioContext;
-  const filter = createChoonFilter(ctx);
-  choonActiveNodes.push(filter);
-
-  const keys = selectedChoonKeyRange();
-  playTone(ctx, midiToFreq(keys.start), 0.55, "triangle", 0.08, filter);
-
-  const t = setTimeout(() => {
-    playTone(ctx, midiToFreq(keys.end), 0.75, "triangle", 0.08, filter);
-  }, 700);
-
-  const end = setTimeout(() => {
-    try { filter.disconnect(); } catch (e) {}
-    choonActiveNodes = choonActiveNodes.filter(node => node !== filter);
-    const status = document.getElementById("choonStatus");
-    if (status) {
-      status.textContent = `Tested start key and end key.`;
-      status.classList.remove("choon-playing");
-    }
-  }, 1700);
-
-  choonTimers.push(t, end);
-
   const status = document.getElementById("choonStatus");
-  if (status) {
-    status.textContent = `Testing start key then end key.`;
-    status.classList.add("choon-playing");
+  const ctx = getChoonAudioContext();
+  if (!ctx) {
+    if (status) status.textContent = "Audio is not supported in this browser.";
+    return;
+  }
+
+  const runTest = () => {
+    unlockChoonAudio(ctx);
+
+    const filter = createChoonFilter(ctx);
+    choonActiveNodes.push(filter);
+
+    const keys = selectedChoonKeyRange();
+    playTone(ctx, midiToFreq(keys.start), 0.55, "triangle", 0.08, filter);
+
+    const t = setTimeout(() => {
+      playTone(ctx, midiToFreq(keys.end), 0.75, "triangle", 0.08, filter);
+    }, 700);
+
+    const end = setTimeout(() => {
+      try { filter.disconnect(); } catch (e) {}
+      choonActiveNodes = choonActiveNodes.filter(node => node !== filter);
+      if (status) {
+        status.textContent = `Tested start key and end key.`;
+        status.classList.remove("choon-playing");
+      }
+    }, 1700);
+
+    choonTimers.push(t, end);
+
+    if (status) {
+      status.textContent = `Testing start key then end key.`;
+      status.classList.add("choon-playing");
+    }
+  };
+
+  if (ctx.state === "suspended") {
+    const resumeResult = ctx.resume();
+    if (resumeResult && typeof resumeResult.then === "function") {
+      resumeResult.then(runTest).catch(err => {
+        if (status) {
+          status.textContent = `Audio could not start: ${err.message || err}. On iPhone, turn off silent mode and tap Test keys again.`;
+          status.classList.remove("choon-playing");
+        }
+      });
+    } else {
+      runTest();
+    }
+  } else {
+    runTest();
   }
 }
 
@@ -2652,6 +3010,34 @@ function lastKnownWeightUpTo(rows, index) {
   return null;
 }
 
+
+function getChoonAudioContext() {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return null;
+  choonAudioContext = choonAudioContext || new AudioCtx();
+  return choonAudioContext;
+}
+
+function unlockChoonAudio(ctx) {
+  if (!ctx || choonAudioUnlocked) return;
+  try {
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.00001, ctx.currentTime);
+    oscillator.frequency.setValueAtTime(220, ctx.currentTime);
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.04);
+    oscillator.addEventListener("ended", () => {
+      try { oscillator.disconnect(); } catch (e) {}
+      try { gain.disconnect(); } catch (e) {}
+    });
+    choonAudioUnlocked = true;
+  } catch (e) {
+    // iOS may still be locked until resume completes; try again at playback.
+  }
+}
 
 function createChoonFilter(ctx) {
   const filter = ctx.createBiquadFilter();
@@ -2808,13 +3194,23 @@ function playChunkrChoon() {
       return;
     }
 
-    choonAudioContext = choonAudioContext || new (window.AudioContext || window.webkitAudioContext)();
-    const ctx = choonAudioContext;
+    const ctx = getChoonAudioContext();
+    if (!ctx) {
+      if (status) {
+        status.textContent = "Audio is not supported in this browser.";
+        status.classList.remove("choon-playing");
+      }
+      return;
+    }
+
+    unlockChoonAudio(ctx);
 
     const runId = ++choonRunId;
 
     const beginPlayback = () => {
       if (runId !== choonRunId) return;
+
+      unlockChoonAudio(ctx);
 
       const filter = createChoonFilter(ctx);
       choonActiveNodes.push(filter);
@@ -2921,12 +3317,17 @@ function playChunkrChoon() {
         status.textContent = "Starting audio…";
         status.classList.add("choon-playing");
       }
-      ctx.resume().then(beginPlayback).catch(err => {
-        if (status) {
-          status.textContent = `Audio could not start: ${err.message || err}`;
-          status.classList.remove("choon-playing");
-        }
-      });
+      const resumeResult = ctx.resume();
+      if (resumeResult && typeof resumeResult.then === "function") {
+        resumeResult.then(beginPlayback).catch(err => {
+          if (status) {
+            status.textContent = `Audio could not start: ${err.message || err}. On iPhone, turn off silent mode and tap Play Choon again.`;
+            status.classList.remove("choon-playing");
+          }
+        });
+      } else {
+        beginPlayback();
+      }
     } else {
       beginPlayback();
     }
@@ -2980,6 +3381,22 @@ document.getElementById("clearAllDataBtn").addEventListener("click", clearAllDat
 document.getElementById("clearRawCsvBtn").addEventListener("click", clearAllData);
 document.getElementById("saveTableBtn").addEventListener("click", saveTableChanges);
 document.getElementById("sortTableBtn").addEventListener("click", saveTableChanges);
+document.getElementById("weightUnitInput").addEventListener("change", () => {
+  const select = document.getElementById("weightUnitInput");
+  const oldUnit = select.dataset.currentWeightUnit || "kg";
+  const newUnit = select.value === "lb" ? "lb" : "kg";
+  convertVisibleWeightFields(oldUnit, newUnit);
+  select.dataset.currentWeightUnit = newUnit;
+  drawChart(true);
+});
+
+document.getElementById("heightUnitInput").addEventListener("change", () => {
+  const select = document.getElementById("heightUnitInput");
+  convertVisibleHeightFields();
+  select.dataset.currentHeightUnit = heightUnitFromInput();
+  drawChart(true);
+});
+
 document.getElementById("applySettingsBtn").addEventListener("click", applySettings);
 document.getElementById("resetSettingsBtn").addEventListener("click", resetSettings);
 document.getElementById("redrawFromCsvBtn").addEventListener("click", () => {
@@ -3004,7 +3421,7 @@ document.querySelectorAll('input[type="color"]').forEach(input => {
   });
 });
 
-["titleInput", "yMinInput", "yMaxInput", "heightInput", "showNotesInput"].forEach(id => {
+["titleInput", "yMinInput", "yMaxInput", "heightInput", "heightCmInput", "heightFeetInput", "heightInchesInput", "weightUnitInput", "heightUnitInput", "showNotesInput"].forEach(id => {
   document.getElementById(id).addEventListener("change", () => {
     if (!activeFileTitle) return;
     drawChart();
