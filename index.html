@@ -1,0 +1,3047 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>CHUNKR</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #101010;
+    --panel: #1b1b1b;
+    --panel2: #141414;
+    --text: #f2f2f2;
+    --muted: #bdbdbd;
+    --border: #3a3a3a;
+    --button: #2f6fed;
+    --button2: #333333;
+    --danger: #7a1e1e;
+    --focus: #ffd24a;
+    --input-bg: #0c0c0c;
+    --input-text: #f2f2f2;
+    --date-bg: #171717;
+    --date-border: #8a8a8a;
+    --date-hover: #242424;
+  }
+
+  html[data-theme="light"] {
+    --bg: #f3f3f3;
+    --panel: #ffffff;
+    --panel2: #f7f7f7;
+    --text: #111111;
+    --muted: #4d4d4d;
+    --border: #c8c8c8;
+    --button: #245bd8;
+    --button2: #666666;
+    --danger: #a92323;
+    --focus: #245bd8;
+    --input-bg: #ffffff;
+    --input-text: #111111;
+    --date-bg: #ffffff;
+    --date-border: #555555;
+    --date-hover: #eeeeee;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .theme-corner {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: color-mix(in srgb, var(--panel) 92%, transparent);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 9px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+
+  .theme-corner-label {
+    font-size: 13px;
+    color: var(--muted);
+    user-select: none;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #444;
+    transition: 0.2s;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+  }
+
+  .switch input:checked + .slider {
+    background-color: #e4c24a;
+  }
+
+  .switch input:checked + .slider:before {
+    transform: translateX(23px);
+    background-color: #111;
+  }
+
+  .wrap {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 18px;
+    padding-top: 22px;
+  }
+
+  .brand-header {
+    text-align: center;
+    padding: 12px 150px 24px 150px;
+  }
+
+  .brand-logo {
+    display: inline-block;
+    color: var(--text);
+    font-family: Avenir Next, Avenir, Montserrat, Futura, Trebuchet MS, Arial, sans-serif;
+    font-weight: 900;
+    font-size: clamp(48px, 8vw, 94px);
+    letter-spacing: -0.07em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .brand-kicker {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted);
+    font-family: Avenir Next, Avenir, Montserrat, Futura, Trebuchet MS, Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+  }
+
+  .brand-meta {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .beta-tag {
+    display: inline-block;
+    color: var(--muted);
+    font-family: Avenir Next, Avenir, Montserrat, Futura, Trebuchet MS, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+  }
+
+  .brand-stripe {
+    display: none;
+  }
+  h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  p {
+    color: var(--muted);
+    line-height: 1.45;
+    margin: 0 0 14px;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 14px;
+  }
+
+  .file-card {
+    border: 2px solid var(--border);
+  }
+
+  details.card {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  details.card > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 12px;
+    user-select: none;
+  }
+
+  details.card > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details.card > summary .summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  details.card > summary .summary-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  details.card > summary .summary-subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 400;
+  }
+
+  details.card > summary .chevron::after {
+    content: "Expand";
+    color: var(--muted);
+    font-size: 13px;
+    border: 1px solid var(--border);
+    padding: 5px 8px;
+    border-radius: 999px;
+  }
+
+  details.card[open] > summary .chevron::after {
+    content: "Collapse";
+  }
+
+  .details-body {
+    padding: 0 12px 12px;
+  }
+
+  .controls,
+  .settings-grid,
+  .colour-grid,
+  .data-controls,
+  .file-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: end;
+  }
+
+  .settings-grid {
+    align-items: start;
+  }
+
+  label {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  input, textarea, select {
+    background: var(--input-bg);
+    color: var(--input-text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px;
+    font: inherit;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    outline: 3px solid color-mix(in srgb, var(--focus) 35%, transparent);
+    border-color: var(--focus);
+  }
+
+  input[type="text"] {
+    min-width: 360px;
+  }
+
+  input[type="number"] {
+    width: 135px;
+  }
+
+  input[type="color"] {
+    width: 64px;
+    height: 42px;
+    padding: 4px;
+  }
+
+  select {
+    min-width: 220px;
+  }
+
+  button {
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 13px;
+    color: white;
+    background: var(--button);
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  button.secondary {
+    background: var(--button2);
+  }
+
+  button.danger {
+    background: var(--danger);
+  }
+
+  button.small {
+    padding: 6px 9px;
+    font-size: 13px;
+  }
+
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .date-entry-box {
+    min-width: 190px;
+  }
+
+  .date-click-zone {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--date-bg);
+    border: 1px solid var(--date-border);
+    border-radius: 8px;
+    padding: 4px 6px;
+    cursor: pointer;
+  }
+
+  .date-click-zone:hover {
+    background: var(--date-hover);
+  }
+
+  .date-click-zone input[type="date"] {
+    width: 150px;
+    height: 38px;
+    min-height: 38px;
+    padding: 6px 7px;
+    border: 0;
+    background: transparent;
+    color: var(--input-text);
+    cursor: pointer;
+  }
+
+  html[data-theme="dark"] .date-click-zone input[type="date"]::-webkit-calendar-picker-indicator,
+  html[data-theme="dark"] .row-date::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.95;
+  }
+
+  .calendar-hint {
+    font-size: 19px;
+    line-height: 1;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  .date-help {
+    margin-top: 5px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .mini-buttons {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .mini-buttons button {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: black;
+    border-radius: 8px;
+  }
+
+  textarea {
+    width: 100%;
+    height: 220px;
+    box-sizing: border-box;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.35;
+    white-space: pre;
+  }
+
+  .status {
+    color: var(--muted);
+    margin-top: 8px;
+    font-size: 14px;
+  }
+
+  .status.strong {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .small {
+    font-size: 13px;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 22px;
+    height: 0;
+    border-top: 3px solid white;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  #doseLegend .swatch {
+    border-top-style: solid;
+  }
+
+  details.raw summary {
+    cursor: pointer;
+    color: var(--text);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .subsection {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 14px;
+    background: var(--panel2);
+  }
+
+  .subsection h3 {
+    margin: 0 0 8px;
+    font-size: 15px;
+  }
+
+  .dose-colour-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .dose-colour-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    background: var(--panel);
+  }
+
+  .dose-colour-item label {
+    margin: 0;
+    color: var(--text);
+    min-width: 72px;
+  }
+
+  .table-wrap {
+    overflow: auto;
+    max-height: 460px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  th, td {
+    border-bottom: 1px solid var(--border);
+    padding: 7px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    background: var(--panel2);
+    z-index: 1;
+  }
+
+  tr:hover {
+    background: var(--panel2);
+  }
+
+  .row-input {
+    width: 100px !important;
+    padding: 6px;
+  }
+
+  .row-date {
+    width: 145px !important;
+    padding: 6px;
+  }
+
+  .row-note {
+    min-width: 220px !important;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+
+  .error-field,
+  .error-field:focus {
+    border-color: #ff3b3b !important;
+    outline: 3px solid rgba(255, 59, 59, 0.28) !important;
+  }
+
+  .error-zone {
+    border-color: #ff3b3b !important;
+    box-shadow: 0 0 0 3px rgba(255, 59, 59, 0.22);
+  }
+
+  .status.error {
+    color: #ff6b6b;
+    font-weight: 750;
+  }
+
+  .choon-playing {
+    color: #2f6fed;
+    font-weight: 750;
+  }
+
+  .shake-error {
+    animation: shakeError 0.22s linear 1;
+  }
+
+  @keyframes shakeError {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    50% { transform: translateX(3px); }
+    75% { transform: translateX(-2px); }
+    100% { transform: translateX(0); }
+  }
+
+  @media (min-width: 1050px) {
+    .two-col {
+      grid-template-columns: minmax(0, 1.1fr) minmax(420px, 0.9fr);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .theme-corner {
+      position: static;
+      width: fit-content;
+      margin: 10px 0 0 auto;
+    }
+
+    .brand-header {
+      padding: 8px 0 18px 0;
+    }
+  }
+
+  @media (max-width: 760px) {
+    body {
+      overflow-x: hidden;
+    }
+
+    .wrap {
+      padding: 10px;
+      padding-top: 8px;
+    }
+
+    .theme-corner {
+      position: sticky;
+      top: 8px;
+      margin: 0 0 10px auto;
+      width: fit-content;
+      padding: 6px 8px;
+    }
+
+    .brand-header {
+      padding: 6px 0 18px 0;
+    }
+
+    .brand-logo {
+      font-size: clamp(42px, 16vw, 68px);
+      letter-spacing: -0.055em;
+    }
+
+    .brand-meta {
+      gap: 7px;
+      margin-top: 5px;
+      flex-wrap: wrap;
+    }
+
+    .brand-kicker {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+    }
+
+    .beta-tag {
+      font-size: 9px;
+    }
+
+    .card,
+    details.card > summary,
+    .details-body {
+      border-radius: 10px;
+    }
+
+    .details-body {
+      padding: 0 10px 10px;
+    }
+
+    .summary-row {
+      align-items: flex-start !important;
+    }
+
+    details.card > summary .summary-subtitle {
+      font-size: 12px;
+    }
+
+    .file-controls,
+    .data-controls,
+    .settings-grid,
+    .colour-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .file-controls > div,
+    .data-controls > div,
+    .settings-grid > div,
+    .colour-grid > div {
+      width: 100%;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea,
+    button {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      font-size: 16px;
+    }
+
+    input[type="color"] {
+      width: 100%;
+      height: 44px;
+    }
+
+    .date-entry-box {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .date-click-zone {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .date-click-zone input[type="date"] {
+      width: 100%;
+      min-width: 0;
+      font-size: 16px;
+    }
+
+    .mini-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .chart-download-controls,
+    .range-download {
+      display: grid;
+      grid-template-columns: 1fr;
+      width: 100%;
+    }
+
+    .chart-download-controls > button,
+    .range-download button {
+      width: 100%;
+    }
+
+    .two-col {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    canvas {
+      min-height: 280px;
+      object-fit: contain;
+    }
+
+    .card > div[style*="justify-content:flex-end"] {
+      justify-content: stretch !important;
+    }
+
+    .legend {
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .table-wrap {
+      max-height: 360px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      font-size: 13px;
+      min-width: 680px;
+    }
+
+    th, td {
+      padding: 6px;
+    }
+
+    .row-input,
+    .row-date,
+    .row-note {
+      width: 100% !important;
+      min-width: 90px !important;
+    }
+
+    .row-note {
+      min-width: 180px !important;
+    }
+
+    .dose-colour-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .dose-colour-item {
+      justify-content: space-between;
+    }
+
+    .dose-colour-item input[type="color"] {
+      width: 84px;
+    }
+  }
+
+  @media (max-width: 430px) {
+    .brand-logo {
+      font-size: 54px;
+    }
+
+    .brand-kicker {
+      letter-spacing: 0.16em;
+    }
+
+    button {
+      padding: 11px 12px;
+    }
+  }
+
+
+  .chart-download-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .chart-download-controls > button {
+    width: auto;
+  }
+
+  .range-download {
+    display: flex;
+    align-items: end;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .range-download input[type="date"] {
+    min-width: 150px;
+  }
+
+</style>
+</head>
+<body>
+<div class="theme-corner" title="Switch light or dark mode">
+  <span id="themeLabel" class="theme-corner-label">Dark</span>
+  <label class="switch">
+    <input id="themeToggle" type="checkbox" aria-label="Toggle light mode">
+    <span class="slider"></span>
+  </label>
+</div>
+
+<div class="wrap">
+  <header class="brand-header" aria-label="CHUNKR">
+    <div class="brand-logo">CHUNKR</div>
+    <div class="brand-meta"><span class="brand-kicker">Weight tracker</span><span class="beta-tag">v.1.0 beta</span></div>
+  </header>
+
+  <details id="userDetails" class="card file-card" open>
+    <summary>
+      <div class="summary-row">
+        <div class="summary-title">
+          <h2 id="userBoxTitle">User</h2>
+          <div class="summary-subtitle">Create, open, rename, delete, and switch between saved users.</div>
+        </div>
+        <span class="chevron"></span>
+      </div>
+    </summary>
+    <div class="details-body">
+      <p class="small">Create a title first. Every reading and setting is then saved under that title. Each title must be different.</p>
+
+      <div class="file-controls">
+        <div>
+          <label for="fileSelect">Open saved user</label>
+          <select id="fileSelect"></select>
+        </div>
+        <button id="openFileBtn" class="secondary">Open selected file</button>
+
+        <div>
+          <label for="newFileTitle">New user title</label>
+          <input id="newFileTitle" type="text">
+        </div>
+        <button id="newFileBtn">Start new user</button>
+        <button id="renameFileBtn" class="secondary">Rename current user</button>
+        <button id="deleteFileBtn" class="danger">Delete current user</button>
+      </div>
+
+      <div id="activeFileStatus" class="status strong"></div>
+    </div>
+  </details>
+
+  <div id="mainApp">
+    <div class="card">
+      <h2 style="margin-bottom:10px;">Add a new data point</h2>
+      <p class="small">After you add a row, the form automatically moves to the next date and clears the weight/dose boxes, so you can keep entering lines.</p>
+      <div class="data-controls">
+        <div class="date-entry-box">
+          <label for="newDate">Date</label>
+          <div id="dateClickZone" class="date-click-zone" title="Click anywhere here to choose a date">
+            <input id="newDate" type="date">
+            <span class="calendar-hint">▾</span>
+          </div>
+          <div class="mini-buttons">
+            <button id="todayBtn" class="secondary" type="button">Today</button>
+            <button id="nextDayBtn" class="secondary" type="button">Next day</button>
+          </div>
+        </div>
+        <div>
+          <label for="newWeight">Weight kg</label>
+          <input id="newWeight" type="number" step="0.1">
+        </div>
+        <div>
+          <label for="newDose">Dose</label>
+          <input id="newDose" type="number" step="0.1">
+        </div>
+        <div>
+          <label for="newNote">Note</label>
+          <input id="newNote" type="text">
+        </div>
+        <button id="addRowBtn">Add data point</button>
+        <button id="clearFieldsBtn" class="secondary">Clear fields</button>
+        <button id="downloadCsvBtn" class="secondary">Download CSV</button>
+        <button id="importCsvBtn" class="secondary">Import CSV</button>
+        <input id="importCsvFile" type="file" accept=".csv,text/csv" style="display:none;">
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="chart-download-controls">
+          <button id="downloadPngBtn">Download full chart</button>
+          <div class="range-download">
+            <div>
+              <label for="downloadStartDate">From</label>
+              <input id="downloadStartDate" type="date">
+            </div>
+            <div>
+              <label for="downloadEndDate">To</label>
+              <input id="downloadEndDate" type="date">
+            </div>
+            <button id="downloadRangePngBtn" class="secondary">Download selected dates</button>
+          </div>
+        </div>
+        <canvas id="chart" width="3200" height="1800"></canvas>
+        <div class="legend">
+          <span><span class="swatch weight"></span>Weight</span>
+          <span id="doseLegend"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-bottom:10px;">Editable data table</h2>
+        <p class="small">Change any date, weight, or dose directly in the table. Leave weight blank for dose-only rows. Leave dose blank for normal weigh-ins.</p>
+        <div style="margin-bottom:10px;">
+          <button id="saveTableBtn">Save table changes</button>
+          <button id="sortTableBtn" class="secondary">Sort by date</button>
+          <button id="clearAllDataBtn" class="danger">Clear data in current file</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Weight kg</th>
+                <th>Dose</th>
+                <th>Note</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="dataTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <details class="card" open>
+      <summary>
+        <div class="summary-row">
+          <div class="summary-title">
+            <h2>Graph settings</h2>
+            <div class="summary-subtitle">Change the chart title, scale, BMI height, BMI bands and dose colours.</div>
+          </div>
+          <span class="chevron"></span>
+        </div>
+      </summary>
+      <div class="details-body">
+        <div class="settings-grid">
+          <div>
+            <label for="titleInput">Graph title</label>
+            <input id="titleInput" type="text">
+          </div>
+          <div>
+            <label for="yMinInput">Y-axis min kg</label>
+            <input id="yMinInput" type="number" step="0.1" value="75">
+          </div>
+          <div>
+            <label for="yMaxInput">Y-axis max kg</label>
+            <input id="yMaxInput" type="number" step="0.1" value="105">
+          </div>
+          <div>
+            <label for="heightInput">Height m for BMI bands</label>
+            <input id="heightInput" type="number" step="0.01" value="1.75">
+          </div>
+          <div>
+            <label for="showNotesInput">Notes on graph</label>
+            <label style="display:flex;align-items:center;gap:8px;color:var(--text);">
+              <input id="showNotesInput" type="checkbox" style="width:auto;">
+              Show notes
+            </label>
+          </div>
+          <button id="applySettingsBtn">Apply settings</button>
+          <button id="resetSettingsBtn" class="secondary">Reset settings</button>
+        </div>
+
+        <details class="raw" style="margin-top:14px;">
+          <summary>Colours</summary>
+          <div class="colour-grid">
+            <div><label for="overallBgColour">Overall background</label><input id="overallBgColour" type="color" value="#000000"></div>
+            <div><label for="plotBgColour">Plot background</label><input id="plotBgColour" type="color" value="#000000"></div>
+            <div><label for="textColour">Text</label><input id="textColour" type="color" value="#f2f2f2"></div>
+            <div><label for="gridColour">Grid</label><input id="gridColour" type="color" value="#888888"></div>
+            <div><label for="weightColour">Weight line</label><input id="weightColour" type="color" value="#e6e6e6"></div>
+            <div><label for="bmiUnderColour">BMI below 18.5</label><input id="bmiUnderColour" type="color" value="#153d5a"></div>
+            <div><label for="bmiHealthyColour">BMI 18.5–25</label><input id="bmiHealthyColour" type="color" value="#0b3d0b"></div>
+            <div><label for="bmiOverColour">BMI 25–30</label><input id="bmiOverColour" type="color" value="#5a3b12"></div>
+            <div><label for="bmiObese1Colour">BMI 30–35</label><input id="bmiObese1Colour" type="color" value="#4a0b0b"></div>
+            <div><label for="bmiObese2Colour">BMI 35–40</label><input id="bmiObese2Colour" type="color" value="#601010"></div>
+            <div><label for="bmiObese3Colour">BMI 40+</label><input id="bmiObese3Colour" type="color" value="#7a1111"></div>
+          </div>
+
+          <div class="subsection">
+            <h3>Dose marker colours</h3>
+            <p class="small">Detected doses are added here automatically. New dose values get an automatic colour based on their numeric value, then you can override the colour if needed.</p>
+            <div id="doseColourGrid" class="dose-colour-grid"></div>
+          </div>
+        </details>
+
+        <div class="status" id="status"></div>
+      </div>
+    </details>
+
+
+
+    <div class="card" id="chunkrChoonBox">
+      <h2 style="margin-bottom:10px;">The Chunkr Choon</h2>
+      <p class="small">Turns the current data into a short tune. Lower weight plays a higher note. Every day on the x axis is one beat of time. Gaps between readings last for the same number of beats. Jabs still play chords even when no weight is entered.</p>
+      <div class="data-controls">
+        <button id="playChoonBtn">Play Choon</button>
+        <button id="stopChoonBtn" class="secondary">Stop</button>
+        <div>
+          <label for="choonSpeedInput">Speed</label>
+          <input id="choonSpeedInput" type="range" min="1" max="10" step="1" value="5">
+        </div>
+        <div>
+          <label for="choonScaleInput">Scale</label>
+          <select id="choonScaleInput">
+            <option value="major">Major</option>
+            <option value="minor">Minor</option>
+            <option value="pentatonic" selected>Pentatonic</option>
+          </select>
+        </div>
+        <div>
+          <label for="choonStartKeyInput">Start key</label>
+          <select id="choonStartKeyInput">
+            <option value="36">C2</option>
+            <option value="38">D2</option>
+            <option value="40">E2</option>
+            <option value="41">F2</option>
+            <option value="43">G2</option>
+            <option value="45">A2</option>
+            <option value="48" selected>C3</option>
+            <option value="50">D3</option>
+            <option value="52">E3</option>
+            <option value="53">F3</option>
+            <option value="55">G3</option>
+            <option value="57">A3</option>
+            <option value="60">C4</option>
+          </select>
+        </div>
+        <div>
+          <label for="choonEndKeyInput">End key</label>
+          <select id="choonEndKeyInput">
+            <option value="60">C4</option>
+            <option value="62">D4</option>
+            <option value="64">E4</option>
+            <option value="65">F4</option>
+            <option value="67">G4</option>
+            <option value="69">A4</option>
+            <option value="72" selected>C5</option>
+            <option value="74">D5</option>
+            <option value="76">E5</option>
+            <option value="77">F5</option>
+            <option value="79">G5</option>
+            <option value="81">A5</option>
+            <option value="84">C6</option>
+          </select>
+        </div>
+        <button id="testKeysBtn" class="secondary">Test keys</button>
+      </div>
+      <div id="choonStatus" class="status">Add weight or dose data, then press Play Choon.</div>
+    </div>
+
+    <div class="card">
+      <details class="raw">
+        <summary>Raw CSV data</summary>
+        <p class="small">CSV format: <strong>Date,Weight kg,Dose mg,Note</strong>. Example row: <strong>2026-06-23,80.8,7.5,Felt tired</strong></p>
+        <label for="csvBox">Data</label>
+        <textarea id="csvBox" spellcheck="false"></textarea>
+        <div style="margin-top:10px;">
+          <button id="redrawFromCsvBtn">Redraw from raw CSV</button>
+          <button id="clearRawCsvBtn" class="danger">Clear raw CSV in current file</button>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<script>
+const EMPTY_CSV = `Date,Weight kg,Dose mg,Note`;
+
+const THEME_PALETTES = {
+  dark: {
+    overallBg: "#000000",
+    plotBg: "#000000",
+    text: "#f2f2f2",
+    grid: "#888888",
+    weight: "#e6e6e6",
+    bmiUnder: "#153d5a",
+    bmiHealthy: "#0b3d0b",
+    bmiOver: "#5a3b12",
+    bmiObese1: "#4a0b0b",
+    bmiObese2: "#601010",
+    bmiObese3: "#7a1111"
+  },
+  light: {
+    overallBg: "#ffffff",
+    plotBg: "#ffffff",
+    text: "#111111",
+    grid: "#777777",
+    weight: "#111111",
+    bmiUnder: "#bdd7ee",
+    bmiHealthy: "#bfe8bf",
+    bmiOver: "#ead6a8",
+    bmiObese1: "#efb6b6",
+    bmiObese2: "#e89191",
+    bmiObese3: "#dc6f6f"
+  }
+};
+
+const STANDARD_DOSE_COLOURS_DARK = {
+  "2.5": "#00e5ff",
+  "5": "#ff00ff",
+  "7.5": "#ffd700"
+};
+
+const STANDARD_DOSE_COLOURS_LIGHT = {
+  "2.5": "#008da3",
+  "5": "#b000b0",
+  "7.5": "#b88700"
+};
+
+const DEFAULT_SETTINGS = {
+  title: "Weight Progress (Updated to [latest date])",
+  yMin: 75,
+  yMax: 105,
+  heightM: 1.75,
+  theme: "light",
+  colours: structuredClone(THEME_PALETTES.light),
+  doseColours: {},
+  showNotes: false
+};
+
+// New storage key for this revision.
+const STORAGE_FILES_KEY = "weight_progress_chart_named_files_v19";
+const STORAGE_ACTIVE_FILE_KEY = "weight_progress_chart_active_file_v19";
+
+const csvBox = document.getElementById("csvBox");
+const statusBox = document.getElementById("status");
+const activeFileStatus = document.getElementById("activeFileStatus");
+const fileSelect = document.getElementById("fileSelect");
+const mainApp = document.getElementById("mainApp");
+const canvas = document.getElementById("chart");
+const ctx = canvas.getContext("2d");
+const dataTableBody = document.getElementById("dataTableBody");
+const doseColourGrid = document.getElementById("doseColourGrid");
+const doseLegend = document.getElementById("doseLegend");
+
+let activeFileTitle = "";
+
+function clone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+
+function clearErrors() {
+  document.querySelectorAll(".error-field").forEach(el => el.classList.remove("error-field"));
+  document.querySelectorAll(".error-zone").forEach(el => el.classList.remove("error-zone", "shake-error"));
+  statusBox.classList.remove("error");
+}
+
+function markError(target, message) {
+  clearErrors();
+  statusBox.textContent = message;
+  statusBox.classList.add("error");
+
+  const el = typeof target === "string" ? document.getElementById(target) : target;
+  if (el) {
+    const className = el.classList.contains("date-click-zone") ? "error-zone" : "error-field";
+    el.classList.add(className, "shake-error");
+    setTimeout(() => el.classList.remove("shake-error"), 260);
+
+    if (typeof el.focus === "function") {
+      el.focus();
+    } else {
+      const input = el.querySelector("input, textarea, select");
+      if (input) input.focus();
+    }
+  }
+}
+
+function clearErrorOnInput(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener("input", clearErrors);
+  el.addEventListener("change", clearErrors);
+}
+
+function setUserBoxTitle(title) {
+  const titleEl = document.getElementById("userBoxTitle");
+  if (!titleEl) return;
+  titleEl.textContent = title ? title : "User";
+}
+
+function collapseUserBox() {
+  const userDetails = document.getElementById("userDetails");
+  if (userDetails) userDetails.open = false;
+}
+
+function expandUserBox() {
+  const userDetails = document.getElementById("userDetails");
+  if (userDetails) userDetails.open = true;
+}
+
+function normaliseTitle(title) {
+  return String(title || "").trim().replace(/\s+/g, " ");
+}
+
+function loadFiles() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_FILES_KEY));
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
+  } catch (e) {}
+  return {};
+}
+
+function saveFiles(files) {
+  localStorage.setItem(STORAGE_FILES_KEY, JSON.stringify(files));
+}
+
+function makeDefaultFile(title) {
+  const settings = clone(DEFAULT_SETTINGS);
+  settings.title = `${title} (Updated to [latest date])`;
+  settings.theme = document.getElementById("themeToggle").checked ? "light" : "dark";
+  settings.colours = clone(THEME_PALETTES[settings.theme]);
+  settings.doseColours = {};
+  return {
+    csv: EMPTY_CSV,
+    settings,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function fileExistsCaseInsensitive(files, title, ignoreTitle = "") {
+  const wanted = title.toLowerCase();
+  const ignore = ignoreTitle.toLowerCase();
+  return Object.keys(files).some(existing => {
+    const ex = existing.toLowerCase();
+    return ex === wanted && ex !== ignore;
+  });
+}
+
+function requireActiveFile() {
+  if (!activeFileTitle) {
+    markError("newFileTitle", "Create a user title first.");
+    activeFileStatus.textContent = "No active file. Enter a title and click Start new user.";
+    return false;
+  }
+  return true;
+}
+
+function updateFileSelector() {
+  const files = loadFiles();
+  const titles = Object.keys(files).sort((a, b) => a.localeCompare(b));
+  fileSelect.innerHTML = "";
+
+  if (titles.length === 0) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "No saved users yet";
+    fileSelect.appendChild(option);
+    fileSelect.disabled = true;
+    document.getElementById("openFileBtn").disabled = true;
+    document.getElementById("renameFileBtn").disabled = true;
+    document.getElementById("deleteFileBtn").disabled = true;
+  } else {
+    fileSelect.disabled = false;
+    document.getElementById("openFileBtn").disabled = false;
+    document.getElementById("renameFileBtn").disabled = !activeFileTitle;
+    document.getElementById("deleteFileBtn").disabled = !activeFileTitle;
+
+    for (const title of titles) {
+      const option = document.createElement("option");
+      option.value = title;
+      option.textContent = title;
+      if (title === activeFileTitle) option.selected = true;
+      fileSelect.appendChild(option);
+    }
+  }
+}
+
+function setMainEnabled(enabled) {
+  mainApp.querySelectorAll("input, textarea, button, select").forEach(el => {
+    if (el.id === "importCsvFile") return;
+    el.disabled = !enabled;
+  });
+  mainApp.style.opacity = enabled ? "1" : "0.45";
+}
+
+function applyPageTheme(theme) {
+  const mode = theme === "light" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", mode);
+  document.getElementById("themeToggle").checked = mode === "light";
+  document.getElementById("themeLabel").textContent = mode === "light" ? "Light" : "Dark";
+}
+
+function applyThemeToGraphColours(theme) {
+  const palette = THEME_PALETTES[theme === "light" ? "light" : "dark"];
+  document.getElementById("overallBgColour").value = palette.overallBg;
+  document.getElementById("plotBgColour").value = palette.plotBg;
+  document.getElementById("textColour").value = palette.text;
+  document.getElementById("gridColour").value = palette.grid;
+  document.getElementById("weightColour").value = palette.weight;
+  document.getElementById("bmiUnderColour").value = palette.bmiUnder;
+  document.getElementById("bmiHealthyColour").value = palette.bmiHealthy;
+  document.getElementById("bmiOverColour").value = palette.bmiOver;
+  document.getElementById("bmiObese1Colour").value = palette.bmiObese1;
+  document.getElementById("bmiObese2Colour").value = palette.bmiObese2;
+  document.getElementById("bmiObese3Colour").value = palette.bmiObese3;
+
+  const rows = parseCsv(csvBox.value || EMPTY_CSV);
+  ensureDoseColours(rows, true);
+  renderDoseColourControls(rows);
+}
+
+function saveCurrentFileFromScreen() {
+  if (!activeFileTitle) return;
+  const files = loadFiles();
+  if (!files[activeFileTitle]) return;
+
+  files[activeFileTitle].csv = csvBox.value || EMPTY_CSV;
+  files[activeFileTitle].settings = getSettingsFromInputs();
+  files[activeFileTitle].updatedAt = new Date().toISOString();
+
+  saveFiles(files);
+  localStorage.setItem(STORAGE_ACTIVE_FILE_KEY, activeFileTitle);
+}
+
+function loadFileIntoScreen(title) {
+  const files = loadFiles();
+  if (!files[title]) return false;
+
+  activeFileTitle = title;
+  localStorage.setItem(STORAGE_ACTIVE_FILE_KEY, activeFileTitle);
+
+  const file = files[title];
+  const settings = mergeSettings(file.settings || DEFAULT_SETTINGS);
+
+  csvBox.value = file.csv || EMPTY_CSV;
+  setDownloadDateDefaults(parseCsv(csvBox.value));
+  putSettingsIntoInputs(settings);
+  applyPageTheme(settings.theme);
+
+  updateFileSelector();
+  setMainEnabled(true);
+  setUserBoxTitle(activeFileTitle);
+  collapseUserBox();
+  activeFileStatus.textContent = `Active user: ${activeFileTitle}`;
+  drawChart();
+  return true;
+}
+
+function createNewFile() {
+  stopChoon();
+  const title = normaliseTitle(document.getElementById("newFileTitle").value);
+  const files = loadFiles();
+
+  if (!title) {
+    activeFileStatus.textContent = "Enter a title for the new user first.";
+    markError("newFileTitle", "Enter a title for the new user first.");
+    return;
+  }
+
+  if (fileExistsCaseInsensitive(files, title)) {
+    activeFileStatus.textContent = `A file called "${title}" already exists. Use a different title.`;
+    markError("newFileTitle", `A file called "${title}" already exists. Use a different title.`);
+    return;
+  }
+
+  clearErrors();
+  saveCurrentFileFromScreen();
+
+  files[title] = makeDefaultFile(title);
+  saveFiles(files);
+
+  document.getElementById("newFileTitle").value = "";
+  loadFileIntoScreen(title);
+  activeFileStatus.textContent = `Created and opened: ${title}`;
+  document.getElementById("newDate").focus();
+}
+
+function openSelectedFile() {
+  stopChoon();
+  const title = fileSelect.value;
+  if (!title) return;
+
+  saveCurrentFileFromScreen();
+  loadFileIntoScreen(title);
+}
+
+function renameCurrentFile() {
+  if (!requireActiveFile()) return;
+
+  const newTitle = normaliseTitle(document.getElementById("newFileTitle").value);
+  if (!newTitle) {
+    activeFileStatus.textContent = "Type the new title in the New user title box, then click Rename current user.";
+    markError("newFileTitle", "Type the new title in the New user title box, then click Rename current user.");
+    return;
+  }
+
+  const files = loadFiles();
+  if (!files[activeFileTitle]) return;
+
+  if (fileExistsCaseInsensitive(files, newTitle, activeFileTitle)) {
+    activeFileStatus.textContent = `A file called "${newTitle}" already exists. Use a different title.`;
+    markError("newFileTitle", `A file called "${newTitle}" already exists. Use a different title.`);
+    return;
+  }
+
+  saveCurrentFileFromScreen();
+
+  const refreshed = loadFiles();
+  refreshed[newTitle] = refreshed[activeFileTitle];
+  delete refreshed[activeFileTitle];
+  refreshed[newTitle].updatedAt = new Date().toISOString();
+
+  saveFiles(refreshed);
+  activeFileTitle = newTitle;
+  localStorage.setItem(STORAGE_ACTIVE_FILE_KEY, activeFileTitle);
+
+  document.getElementById("newFileTitle").value = "";
+  loadFileIntoScreen(activeFileTitle);
+  activeFileStatus.textContent = `Renamed current user to: ${activeFileTitle}`;
+}
+
+function deleteCurrentFile() {
+  stopChoon();
+  if (!requireActiveFile()) return;
+
+  const confirmed = confirm(`Delete the current file "${activeFileTitle}"? This cannot be undone unless you have exported a CSV.`);
+  if (!confirmed) return;
+
+  const files = loadFiles();
+  delete files[activeFileTitle];
+  saveFiles(files);
+
+  activeFileTitle = "";
+  localStorage.removeItem(STORAGE_ACTIVE_FILE_KEY);
+
+  const titles = Object.keys(files).sort((a, b) => a.localeCompare(b));
+  if (titles.length > 0) {
+    loadFileIntoScreen(titles[0]);
+  } else {
+    initialiseNoFileState();
+  }
+}
+
+function initialiseNoFileState() {
+  activeFileTitle = "";
+  csvBox.value = EMPTY_CSV;
+  const settings = clone(DEFAULT_SETTINGS);
+  const currentTheme = document.getElementById("themeToggle").checked ? "light" : "light";
+  settings.theme = currentTheme;
+  settings.colours = clone(THEME_PALETTES[currentTheme]);
+  settings.doseColours = {};
+  settings.showNotes = false;
+  putSettingsIntoInputs(settings);
+  applyPageTheme(settings.theme);
+  updateFileSelector();
+  setMainEnabled(false);
+  setUserBoxTitle("User");
+  expandUserBox();
+  activeFileStatus.textContent = "No active file. Enter a title and click Start new user.";
+  renderDoseColourControls([]);
+  drawEmptyChart(getSettingsFromInputs(), "Create a user title to begin");
+}
+
+function mergeSettings(saved) {
+  const settings = clone(DEFAULT_SETTINGS);
+  if (saved) {
+    Object.assign(settings, saved);
+    settings.theme = saved.theme === "light" ? "light" : "dark";
+    settings.colours = Object.assign({}, THEME_PALETTES[settings.theme], saved.colours || {});
+    settings.doseColours = Object.assign({}, saved.doseColours || {});
+    settings.showNotes = !!saved.showNotes;
+  }
+  return settings;
+}
+
+function parseDateOnly(s) {
+  if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s.trim())) return null;
+  const [y, m, d] = s.trim().split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function dateKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function doseKey(dose) {
+  return String(Number(dose));
+}
+
+function formatDose(dose) {
+  const n = Number(dose);
+  return Number.isInteger(n) ? String(n) : String(n);
+}
+
+
+function parseCsvLine(line) {
+  const result = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const next = line[i + 1];
+
+    if (char === '"' && inQuotes && next === '"') {
+      current += '"';
+      i++;
+    } else if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      result.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  result.push(current);
+  return result;
+}
+
+function csvEscape(value) {
+  const s = String(value ?? "");
+  if (/[",\n\r]/.test(s)) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+function parseCsv(text) {
+  const lines = text.replace(/\r/g, "").split("\n").map(l => l.trim()).filter(Boolean);
+  const rows = [];
+  for (const line of lines) {
+    if (line.toLowerCase().startsWith("date,")) continue;
+    const parts = parseCsvLine(line);
+    const date = parseDateOnly(parts[0] || "");
+    if (!date) continue;
+
+    const wRaw = (parts[1] || "").trim();
+    const dRaw = (parts[2] || "").trim();
+    const note = (parts.slice(3).join(",") || "").trim();
+
+    const weight = wRaw === "" ? null : Number(wRaw);
+    const dose = dRaw === "" ? null : Number(dRaw);
+
+    rows.push({
+      date,
+      dateString: dateKey(date),
+      weight: Number.isFinite(weight) ? weight : null,
+      dose: Number.isFinite(dose) ? dose : null,
+      note
+    });
+  }
+
+  rows.sort((a, b) => a.date - b.date);
+  return rows;
+}
+
+function toCsv(rows) {
+  return "Date,Weight kg,Dose mg,Note\n" + rows.map(r => {
+    const w = r.weight === null ? "" : Number(r.weight).toFixed(1);
+    const d = r.dose === null ? "" : String(r.dose);
+    const note = r.note || "";
+    return [r.dateString, w, d, note].map(csvEscape).join(",");
+  }).join("\n");
+}
+
+function getDetectedDoses(rows = parseCsv(csvBox.value || EMPTY_CSV)) {
+  return Array.from(new Set(rows.filter(r => r.dose !== null).map(r => Number(r.dose))))
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+}
+
+function hexToRgb(hex) {
+  const h = String(hex).replace("#", "");
+  return {
+    r: parseInt(h.slice(0, 2), 16),
+    g: parseInt(h.slice(2, 4), 16),
+    b: parseInt(h.slice(4, 6), 16)
+  };
+}
+
+function rgbToHex(r, g, b) {
+  return "#" + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("");
+}
+
+function interpolateHex(a, b, t) {
+  const ca = hexToRgb(a);
+  const cb = hexToRgb(b);
+  return rgbToHex(
+    ca.r + (cb.r - ca.r) * t,
+    ca.g + (cb.g - ca.g) * t,
+    ca.b + (cb.b - ca.b) * t
+  );
+}
+
+function automaticDoseColour(dose, theme) {
+  const n = Number(dose);
+  const anchors = theme === "light"
+    ? [
+        [0, "#006a7a"],
+        [2.5, STANDARD_DOSE_COLOURS_LIGHT["2.5"]],
+        [5, STANDARD_DOSE_COLOURS_LIGHT["5"]],
+        [7.5, STANDARD_DOSE_COLOURS_LIGHT["7.5"]],
+        [10, "#c85a00"],
+        [15, "#b80000"]
+      ]
+    : [
+        [0, "#00bfff"],
+        [2.5, STANDARD_DOSE_COLOURS_DARK["2.5"]],
+        [5, STANDARD_DOSE_COLOURS_DARK["5"]],
+        [7.5, STANDARD_DOSE_COLOURS_DARK["7.5"]],
+        [10, "#ff7a00"],
+        [15, "#ff3333"]
+      ];
+
+  for (const [anchorDose, colour] of anchors) {
+    if (Math.abs(n - anchorDose) < 0.0001) return colour;
+  }
+
+  if (n <= anchors[0][0]) return anchors[0][1];
+  if (n >= anchors[anchors.length - 1][0]) return anchors[anchors.length - 1][1];
+
+  for (let i = 0; i < anchors.length - 1; i++) {
+    const [d1, c1] = anchors[i];
+    const [d2, c2] = anchors[i + 1];
+    if (n >= d1 && n <= d2) {
+      return interpolateHex(c1, c2, (n - d1) / (d2 - d1));
+    }
+  }
+
+  return theme === "light" ? "#555555" : "#eeeeee";
+}
+
+function getDoseColoursFromInputs() {
+  const doseColours = {};
+  doseColourGrid.querySelectorAll("input[data-dose-key]").forEach(input => {
+    doseColours[input.dataset.doseKey] = input.value;
+  });
+  return doseColours;
+}
+
+function ensureDoseColours(rows, forceThemeDefaults = false) {
+  const doses = getDetectedDoses(rows);
+  const theme = document.getElementById("themeToggle").checked ? "light" : "dark";
+  const currentSettings = getSettingsFromInputsWithoutDoseRead();
+  const current = forceThemeDefaults ? {} : Object.assign({}, currentSettings.doseColours || {}, getDoseColoursFromInputs());
+
+  doses.forEach(dose => {
+    const key = doseKey(dose);
+    if (!current[key]) {
+      current[key] = automaticDoseColour(dose, theme);
+    }
+  });
+
+  return current;
+}
+
+function renderDoseColourControls(rows) {
+  const doses = getDetectedDoses(rows);
+  const doseColours = ensureDoseColours(rows);
+  doseColourGrid.innerHTML = "";
+
+  if (doses.length === 0) {
+    doseColourGrid.innerHTML = '<span class="small">No dose values detected yet.</span>';
+    doseLegend.innerHTML = "";
+    return;
+  }
+
+  doses.forEach(dose => {
+    const key = doseKey(dose);
+    const item = document.createElement("div");
+    item.className = "dose-colour-item";
+
+    const label = document.createElement("label");
+    label.textContent = `${formatDose(dose)} dose`;
+
+    const input = document.createElement("input");
+    input.type = "color";
+    input.value = doseColours[key];
+    input.dataset.doseKey = key;
+    input.addEventListener("input", () => {
+      drawChart(true);
+      renderDoseLegend(doses, getDoseColoursFromInputs());
+      saveCurrentFileFromScreen();
+    });
+
+    item.appendChild(label);
+    item.appendChild(input);
+    doseColourGrid.appendChild(item);
+  });
+
+  renderDoseLegend(doses, doseColours);
+}
+
+function renderDoseLegend(doses, doseColours) {
+  doseLegend.innerHTML = "";
+  doses.forEach(dose => {
+    const key = doseKey(dose);
+    const span = document.createElement("span");
+    span.innerHTML = `<span class="swatch" style="border-color:${doseColours[key]};"></span>${formatDose(dose)} dose`;
+    doseLegend.appendChild(span);
+  });
+}
+
+function getSettingsFromInputsWithoutDoseRead() {
+  const theme = document.getElementById("themeToggle").checked ? "light" : "dark";
+
+  const settings = {
+    title: document.getElementById("titleInput").value.trim() || DEFAULT_SETTINGS.title,
+    yMin: Number(document.getElementById("yMinInput").value),
+    yMax: Number(document.getElementById("yMaxInput").value),
+    heightM: Number(document.getElementById("heightInput").value),
+    theme,
+    colours: {
+      overallBg: document.getElementById("overallBgColour").value,
+      plotBg: document.getElementById("plotBgColour").value,
+      text: document.getElementById("textColour").value,
+      grid: document.getElementById("gridColour").value,
+      weight: document.getElementById("weightColour").value,
+      bmiUnder: document.getElementById("bmiUnderColour").value,
+      bmiHealthy: document.getElementById("bmiHealthyColour").value,
+      bmiOver: document.getElementById("bmiOverColour").value,
+      bmiObese1: document.getElementById("bmiObese1Colour").value,
+      bmiObese2: document.getElementById("bmiObese2Colour").value,
+      bmiObese3: document.getElementById("bmiObese3Colour").value
+    },
+    doseColours: {},
+    showNotes: document.getElementById("showNotesInput") ? document.getElementById("showNotesInput").checked : false
+  };
+
+  if (!Number.isFinite(settings.yMin)) {
+    markError("yMinInput", "Y-axis minimum must be a number.");
+    settings.yMin = DEFAULT_SETTINGS.yMin;
+  }
+  if (!Number.isFinite(settings.yMax)) {
+    markError("yMaxInput", "Y-axis maximum must be a number.");
+    settings.yMax = DEFAULT_SETTINGS.yMax;
+  }
+  if (settings.yMax <= settings.yMin) {
+    markError("yMaxInput", "Y-axis maximum must be higher than the minimum.");
+    document.getElementById("yMinInput").classList.add("error-field");
+    settings.yMin = DEFAULT_SETTINGS.yMin;
+    settings.yMax = DEFAULT_SETTINGS.yMax;
+  }
+  if (!Number.isFinite(settings.heightM) || settings.heightM <= 0) {
+    markError("heightInput", "Height must be a number above zero.");
+    settings.heightM = DEFAULT_SETTINGS.heightM;
+  }
+
+  return settings;
+}
+
+function getSettingsFromInputs() {
+  const settings = getSettingsFromInputsWithoutDoseRead();
+  const rows = parseCsv(csvBox.value || EMPTY_CSV);
+  const autoDoseColours = ensureDoseColours(rows);
+  settings.doseColours = Object.assign({}, autoDoseColours, getDoseColoursFromInputs());
+  return settings;
+}
+
+function putSettingsIntoInputs(settings) {
+  document.getElementById("titleInput").value = settings.title;
+  document.getElementById("yMinInput").value = settings.yMin;
+  document.getElementById("yMaxInput").value = settings.yMax;
+  document.getElementById("heightInput").value = settings.heightM;
+  if (document.getElementById("showNotesInput")) document.getElementById("showNotesInput").checked = !!settings.showNotes;
+
+  document.getElementById("overallBgColour").value = settings.colours.overallBg;
+  document.getElementById("plotBgColour").value = settings.colours.plotBg;
+  document.getElementById("textColour").value = settings.colours.text;
+  document.getElementById("gridColour").value = settings.colours.grid;
+  document.getElementById("weightColour").value = settings.colours.weight;
+  document.getElementById("bmiUnderColour").value = settings.colours.bmiUnder;
+  document.getElementById("bmiHealthyColour").value = settings.colours.bmiHealthy;
+  document.getElementById("bmiOverColour").value = settings.colours.bmiOver;
+  document.getElementById("bmiObese1Colour").value = settings.colours.bmiObese1;
+  document.getElementById("bmiObese2Colour").value = settings.colours.bmiObese2;
+  document.getElementById("bmiObese3Colour").value = settings.colours.bmiObese3;
+
+  applyPageTheme(settings.theme || "dark");
+  renderDoseColourControls(parseCsv(csvBox.value || EMPTY_CSV));
+}
+
+function drawDashedLine(ctx, x, y1, y2, colour, width, dash) {
+  ctx.save();
+  ctx.strokeStyle = colour;
+  ctx.lineWidth = width;
+  ctx.setLineDash(dash);
+  ctx.beginPath();
+  ctx.moveTo(x, y1);
+  ctx.lineTo(x, y2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function doseLineDash(dose) {
+  const n = Number(dose);
+  if (Math.abs(n - 2.5) < 0.0001) return [4, 12];
+  if (Math.abs(n - 5) < 0.0001) return [24, 14];
+  if (Math.abs(n - 7.5) < 0.0001) return [];
+  return [12, 10];
+}
+
+function doseLineWidth(dose) {
+  const n = Number(dose);
+  if (Math.abs(n - 2.5) < 0.0001) return 7.0;
+  if (Math.abs(n - 5) < 0.0001) return 8.0;
+  if (Math.abs(n - 7.5) < 0.0001) return 9.5;
+  return 7.0;
+}
+
+function chooseYStep(range) {
+  if (range <= 8) return 1;
+  if (range <= 16) return 2;
+  if (range <= 40) return 5;
+  return 10;
+}
+
+function formatTick(n) {
+  return Math.abs(n - Math.round(n)) < 0.0001 ? String(Math.round(n)) : n.toFixed(1);
+}
+
+function drawEmptyChart(settings, message = "Add your first reading to begin") {
+  const W = canvas.width;
+  const H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = settings.colours.overallBg;
+  ctx.fillRect(0, 0, W, H);
+
+  const margin = { left: 120, right: 130, top: 90, bottom: 180 };
+  const plotX = margin.left;
+  const plotY = margin.top;
+  const plotW = W - margin.left - margin.right;
+  const plotH = H - margin.top - margin.bottom;
+
+  ctx.fillStyle = settings.colours.plotBg;
+  ctx.fillRect(plotX, plotY, plotW, plotH);
+
+  ctx.save();
+  ctx.strokeStyle = settings.colours.text;
+  ctx.globalAlpha = 0.7;
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(plotX, plotY, plotW, plotH);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = settings.colours.text;
+  ctx.font = "48px system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.fillText(settings.title.replaceAll("[latest date]", "no data yet"), W / 2, 20);
+  ctx.font = "34px system-ui, sans-serif";
+  ctx.textBaseline = "middle";
+  ctx.fillText(message, W / 2, plotY + plotH / 2);
+  ctx.restore();
+}
+
+function drawChart(skipTableRender = false) {
+  if (!activeFileTitle) {
+    drawEmptyChart(getSettingsFromInputs(), "Create a user title to begin");
+    return;
+  }
+
+  const rowsAll = parseCsv(csvBox.value);
+  const range = chartRangeOverride;
+  const rows = range
+    ? rowsAll.filter(r => r.date >= range.start && r.date <= range.end)
+    : rowsAll;
+  const settings = getSettingsFromInputs();
+  applyPageTheme(settings.theme);
+  if (!range) saveCurrentFileFromScreen();
+  renderDoseColourControls(rowsAll);
+
+  const weightRows = rows.filter(r => r.weight !== null);
+  const doseRows = rows.filter(r => r.dose !== null);
+
+  if (weightRows.length === 0 || rows.length === 0) {
+    drawEmptyChart(settings);
+    statusBox.textContent = range
+      ? `No weight readings in selected date range.`
+      : `Saved under "${activeFileTitle}". No data yet. Add a date and weight to begin.`;
+    if (!skipTableRender) renderTable(rows);
+    return;
+  }
+
+  const W = canvas.width;
+  const H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = settings.colours.overallBg;
+  ctx.fillRect(0, 0, W, H);
+
+  const start = rows[0].date;
+  const latest = rows.reduce((max, r) => r.date > max ? r.date : max, rows[0].date);
+  const latestWeight = weightRows[weightRows.length - 1];
+
+  const yMin = settings.yMin;
+  const yMax = settings.yMax;
+  const heightM = settings.heightM;
+
+  const bmiThresholds = [
+    { bmi: 18.5, label: "BMI 18.5", weight: 18.5 * heightM * heightM },
+    { bmi: 25, label: "BMI 25", weight: 25 * heightM * heightM },
+    { bmi: 30, label: "BMI 30", weight: 30 * heightM * heightM },
+    { bmi: 35, label: "BMI 35", weight: 35 * heightM * heightM },
+    { bmi: 40, label: "BMI 40", weight: 40 * heightM * heightM }
+  ];
+
+  const margin = { left: 120, right: 150, top: 90, bottom: 180 };
+  const plotX = margin.left;
+  const plotY = margin.top;
+  const plotW = W - margin.left - margin.right;
+  const plotH = H - margin.top - margin.bottom;
+
+  const xScale = d => {
+    const t0 = start.getTime();
+    const t1 = latest.getTime();
+    if (t1 === t0) return plotX + plotW / 2;
+    return plotX + ((d.getTime() - t0) / (t1 - t0)) * plotW;
+  };
+
+  const yScale = kg => plotY + ((yMax - kg) / (yMax - yMin)) * plotH;
+
+  ctx.fillStyle = settings.colours.plotBg;
+  ctx.fillRect(plotX, plotY, plotW, plotH);
+
+  function band(yLow, yHigh, colour) {
+    const low = Math.max(yLow, yMin);
+    const high = Math.min(yHigh, yMax);
+    if (high <= low) return;
+    ctx.fillStyle = colour;
+    ctx.globalAlpha = settings.theme === "light" ? 0.9 : 0.75;
+    ctx.fillRect(plotX, yScale(high), plotW, yScale(low) - yScale(high));
+    ctx.globalAlpha = 1;
+  }
+
+  const bmi18_5 = 18.5 * heightM * heightM;
+  const bmi25 = 25 * heightM * heightM;
+  const bmi30 = 30 * heightM * heightM;
+  const bmi35 = 35 * heightM * heightM;
+  const bmi40 = 40 * heightM * heightM;
+
+  band(yMin, Math.min(bmi18_5, yMax), settings.colours.bmiUnder);
+  band(Math.max(bmi18_5, yMin), Math.min(bmi25, yMax), settings.colours.bmiHealthy);
+  band(Math.max(bmi25, yMin), Math.min(bmi30, yMax), settings.colours.bmiOver);
+  band(Math.max(bmi30, yMin), Math.min(bmi35, yMax), settings.colours.bmiObese1);
+  band(Math.max(bmi35, yMin), Math.min(bmi40, yMax), settings.colours.bmiObese2);
+  band(Math.max(bmi40, yMin), yMax, settings.colours.bmiObese3);
+
+  ctx.save();
+  ctx.strokeStyle = settings.colours.grid;
+  ctx.globalAlpha = settings.theme === "light" ? 0.35 : 0.25;
+  ctx.lineWidth = 1.4;
+
+  const yStep = chooseYStep(yMax - yMin);
+  const firstTick = Math.ceil(yMin / yStep) * yStep;
+  for (let kg = firstTick; kg <= yMax + 0.0001; kg += yStep) {
+    const y = yScale(kg);
+    ctx.beginPath();
+    ctx.moveTo(plotX, y);
+    ctx.lineTo(plotX + plotW, y);
+    ctx.stroke();
+  }
+
+  const tickDate = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+  while (tickDate <= latest) {
+    const x = xScale(tickDate);
+    ctx.beginPath();
+    ctx.moveTo(x, plotY);
+    ctx.lineTo(x, plotY + plotH);
+    ctx.stroke();
+    tickDate.setMonth(tickDate.getMonth() + 1);
+  }
+  ctx.restore();
+
+  for (const r of doseRows) {
+    const x = xScale(r.date);
+    const key = doseKey(r.dose);
+    const colour = settings.doseColours[key] || automaticDoseColour(r.dose, settings.theme);
+    drawDashedLine(ctx, x, plotY, plotY + plotH, colour, doseLineWidth(r.dose), doseLineDash(r.dose));
+  }
+
+  ctx.save();
+  ctx.strokeStyle = settings.colours.text;
+  ctx.globalAlpha = 0.7;
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(plotX, plotY, plotW, plotH);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = settings.colours.text;
+  ctx.font = "28px system-ui, sans-serif";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  for (let kg = firstTick; kg <= yMax + 0.0001; kg += yStep) {
+    ctx.fillText(formatTick(kg), plotX - 20, yScale(kg));
+  }
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = settings.colours.text;
+  ctx.font = "24px system-ui, sans-serif";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  for (const threshold of bmiThresholds) {
+    if (threshold.weight >= yMin && threshold.weight <= yMax) {
+      ctx.fillText(threshold.label, plotX + plotW + 18, yScale(threshold.weight));
+    }
+  }
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = settings.colours.text;
+  ctx.font = "26px system-ui, sans-serif";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  const labelDate = new Date(start.getFullYear(), start.getMonth(), 1);
+  while (labelDate <= latest) {
+    if (labelDate >= start) {
+      const x = xScale(labelDate);
+      ctx.save();
+      ctx.translate(x, plotY + plotH + 42);
+      ctx.rotate(-Math.PI / 4);
+      ctx.fillText(dateKey(labelDate), 0, 0);
+      ctx.restore();
+    }
+    labelDate.setMonth(labelDate.getMonth() + 1);
+  }
+  ctx.restore();
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(plotX, plotY, plotW, plotH);
+  ctx.clip();
+
+  ctx.strokeStyle = settings.colours.weight;
+  ctx.lineWidth = 4.8;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  weightRows.forEach((r, i) => {
+    const x = xScale(r.date);
+    const y = yScale(r.weight);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  ctx.fillStyle = settings.colours.weight;
+  for (const r of weightRows) {
+    const x = xScale(r.date);
+    const y = yScale(r.weight);
+    ctx.beginPath();
+    ctx.arc(x, y, 5.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  if (settings.showNotes) {
+    ctx.save();
+    ctx.fillStyle = settings.colours.text;
+    ctx.font = "20px system-ui, sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "bottom";
+    for (const r of weightRows) {
+      if (!r.note) continue;
+      const x = Math.min(xScale(r.date) + 9, plotX + plotW - 240);
+      const y = Math.max(yScale(r.weight) - 9, plotY + 24);
+      ctx.fillText(r.note.slice(0, 34), x, y);
+    }
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.fillStyle = settings.colours.text;
+  ctx.font = "48px system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  const title = settings.title.replaceAll("[latest date]", dateKey(latest));
+  ctx.fillText(title, W / 2, 20);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = settings.colours.text;
+  ctx.font = "30px system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.translate(38, plotY + plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText("Weight (kg)", 0, 0);
+  ctx.restore();
+
+  statusBox.textContent = `Saved under "${activeFileTitle}". ${weightRows.length} weight readings. ${doseRows.length} dose markers. Latest weight: ${latestWeight.dateString} = ${latestWeight.weight.toFixed(1)}kg.`;
+
+  if (!skipTableRender) renderTable(rows);
+}
+
+function renderTable(rows) {
+  dataTableBody.innerHTML = "";
+  rows.forEach((r, index) => {
+    const tr = document.createElement("tr");
+    tr.dataset.index = String(index);
+
+    const dateTd = document.createElement("td");
+    const dateInput = document.createElement("input");
+    dateInput.type = "date";
+    dateInput.value = r.dateString;
+    dateInput.className = "row-date";
+    dateTd.appendChild(dateInput);
+
+    const weightTd = document.createElement("td");
+    const weightInput = document.createElement("input");
+    weightInput.type = "number";
+    weightInput.step = "0.1";
+    weightInput.value = r.weight === null ? "" : r.weight.toFixed(1);
+    weightInput.className = "row-input";
+    weightTd.appendChild(weightInput);
+
+    const doseTd = document.createElement("td");
+    const doseInput = document.createElement("input");
+    doseInput.type = "number";
+    doseInput.step = "0.1";
+    doseInput.value = r.dose === null ? "" : String(r.dose);
+    doseInput.className = "row-input";
+    doseTd.appendChild(doseInput);
+
+    const noteTd = document.createElement("td");
+    const noteInput = document.createElement("input");
+    noteInput.type = "text";
+    noteInput.value = r.note || "";
+    noteInput.className = "row-note";
+    noteInput.style.width = "220px";
+    noteInput.style.padding = "6px";
+    noteTd.appendChild(noteInput);
+
+    const actionTd = document.createElement("td");
+    const loadBtn = document.createElement("button");
+    loadBtn.textContent = "Update";
+    loadBtn.className = "small secondary";
+    loadBtn.addEventListener("click", () => {
+      document.getElementById("newDate").value = dateInput.value;
+      document.getElementById("newWeight").value = weightInput.value;
+      document.getElementById("newDose").value = doseInput.value;
+      document.getElementById("newNote").value = noteInput.value;
+      statusBox.textContent = `Ready to update ${dateInput.value}.`;
+    });
+
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "Delete";
+    delBtn.className = "small danger";
+    delBtn.style.marginLeft = "6px";
+    delBtn.addEventListener("click", () => {
+      deleteRowByIndex(index);
+    });
+
+    actionTd.appendChild(loadBtn);
+    actionTd.appendChild(delBtn);
+
+    tr.appendChild(dateTd);
+    tr.appendChild(weightTd);
+    tr.appendChild(doseTd);
+    tr.appendChild(noteTd);
+    tr.appendChild(actionTd);
+
+    dataTableBody.appendChild(tr);
+  });
+}
+
+function rowsFromTable() {
+  const rows = [];
+  for (const tr of dataTableBody.querySelectorAll("tr")) {
+    const inputs = tr.querySelectorAll("input");
+    const date = parseDateOnly(inputs[0].value);
+    if (!date) continue;
+
+    const weightRaw = inputs[1].value.trim();
+    const doseRaw = inputs[2].value.trim();
+    const note = inputs[3] ? inputs[3].value.trim() : "";
+    const weight = weightRaw === "" ? null : Number(weightRaw);
+    const dose = doseRaw === "" ? null : Number(doseRaw);
+
+    rows.push({
+      date,
+      dateString: dateKey(date),
+      weight: Number.isFinite(weight) ? weight : null,
+      dose: Number.isFinite(dose) ? dose : null,
+      note
+    });
+  }
+
+  rows.sort((a, b) => a.date - b.date);
+  return rows;
+}
+
+function saveTableChanges() {
+  if (!requireActiveFile()) return;
+  const rows = rowsFromTable();
+  csvBox.value = toCsv(rows);
+  drawChart();
+}
+
+function deleteRowByIndex(index) {
+  if (!requireActiveFile()) return;
+  const rows = parseCsv(csvBox.value);
+  rows.splice(index, 1);
+  csvBox.value = toCsv(rows);
+  drawChart();
+}
+
+function addDays(date, days) {
+  const copy = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  copy.setDate(copy.getDate() + days);
+  return copy;
+}
+
+function prepareNextEntryDate(currentDateString) {
+  const currentDate = parseDateOnly(currentDateString);
+  if (!currentDate) return;
+
+  const nextDay = addDays(currentDate, 1);
+  document.getElementById("newDate").value = dateKey(nextDay);
+  document.getElementById("newWeight").value = "";
+  document.getElementById("newDose").value = "";
+  document.getElementById("newNote").value = "";
+  document.getElementById("newWeight").focus();
+}
+
+function addOrUpdateRow() {
+  if (!requireActiveFile()) return;
+
+  const d = document.getElementById("newDate").value;
+  const wStr = document.getElementById("newWeight").value.trim();
+  const doseStr = document.getElementById("newDose").value.trim();
+  const noteStr = document.getElementById("newNote").value.trim();
+
+  if (!d) {
+    markError("dateClickZone", "Choose a date first.");
+    openDatePicker();
+    return;
+  }
+
+  if (wStr === "" && doseStr === "") {
+    markError("newWeight", "Enter a weight, a dose, or both.");
+    document.getElementById("newDose").classList.add("error-field");
+    return;
+  }
+
+  clearErrors();
+  const rows = parseCsv(csvBox.value);
+  const existing = rows.find(r => r.dateString === d);
+
+  const weight = wStr === "" ? null : Number(wStr);
+  const dose = doseStr === "" ? null : Number(doseStr);
+
+  const row = {
+    date: parseDateOnly(d),
+    dateString: d,
+    weight: Number.isFinite(weight) ? weight : null,
+    dose: Number.isFinite(dose) ? dose : null,
+    note: noteStr
+  };
+
+  if (existing) {
+    existing.weight = row.weight;
+    existing.dose = row.dose;
+    existing.note = row.note;
+  } else {
+    rows.push(row);
+  }
+
+  rows.sort((a, b) => a.date - b.date);
+  csvBox.value = toCsv(rows);
+  drawChart();
+  prepareNextEntryDate(d);
+}
+
+function deleteSelectedDate() {
+  if (!requireActiveFile()) return;
+
+  const d = document.getElementById("newDate").value;
+  if (!d) {
+    markError("dateClickZone", "Choose a date to delete.");
+    return;
+  }
+
+  const rows = parseCsv(csvBox.value);
+  const filtered = rows.filter(r => r.dateString !== d);
+  if (filtered.length === rows.length) {
+    markError("dateClickZone", `No row found for ${d}.`);
+    return;
+  }
+
+  csvBox.value = toCsv(filtered);
+  drawChart();
+}
+
+function clearFields() {
+  document.getElementById("newDate").value = "";
+  document.getElementById("newWeight").value = "";
+  document.getElementById("newDose").value = "";
+  document.getElementById("newNote").value = "";
+  document.getElementById("newDate").focus();
+}
+
+function clearAllData() {
+  if (!requireActiveFile()) return;
+  const confirmed = confirm(`Clear all chart data in "${activeFileTitle}"?`);
+  if (!confirmed) return;
+  csvBox.value = EMPTY_CSV;
+  drawChart();
+}
+
+function safeFilename(name) {
+  return String(name || "weight_chart")
+    .trim()
+    .replace(/[^a-z0-9]+/gi, "_")
+    .replace(/^_+|_+$/g, "")
+    .toLowerCase() || "weight_chart";
+}
+
+
+function withTemporaryChartRange(startDate, endDate, callback) {
+  const previousRange = chartRangeOverride;
+  chartRangeOverride = { start: startDate, end: endDate };
+  try {
+    drawChart(true);
+    callback();
+  } finally {
+    chartRangeOverride = previousRange;
+    drawChart(true);
+  }
+}
+
+function setDownloadDateDefaults(rows) {
+  const startInput = document.getElementById("downloadStartDate");
+  const endInput = document.getElementById("downloadEndDate");
+  if (!startInput || !endInput || !rows.length) return;
+
+  const datedRows = rows.filter(r => r.weight !== null || r.dose !== null);
+  if (!datedRows.length) return;
+
+  const first = datedRows[0].dateString;
+  const last = datedRows[datedRows.length - 1].dateString;
+
+  if (!startInput.value) startInput.value = first;
+  if (!endInput.value) endInput.value = last;
+}
+
+function downloadRangePng() {
+  if (!requireActiveFile()) return;
+  saveCurrentFileFromScreen();
+
+  const rows = parseCsv(csvBox.value).filter(r => r.weight !== null || r.dose !== null);
+  if (!rows.length) {
+    markError("downloadStartDate", "Add data before downloading a date range.");
+    return;
+  }
+
+  const startInput = document.getElementById("downloadStartDate");
+  const endInput = document.getElementById("downloadEndDate");
+  const startDate = parseDateOnly(startInput.value);
+  const endDate = parseDateOnly(endInput.value);
+
+  if (!startDate) {
+    markError("downloadStartDate", "Choose a start date.");
+    return;
+  }
+
+  if (!endDate) {
+    markError("downloadEndDate", "Choose an end date.");
+    return;
+  }
+
+  if (startDate > endDate) {
+    markError("downloadEndDate", "End date must be after start date.");
+    return;
+  }
+
+  const inRange = rows.filter(r => r.date >= startDate && r.date <= endDate);
+  if (!inRange.length) {
+    markError("downloadStartDate", "No readings or doses in that date range.");
+    return;
+  }
+
+  const hasWeight = inRange.some(r => r.weight !== null);
+  if (!hasWeight) {
+    markError("downloadStartDate", "That date range has dose entries but no weight readings to chart.");
+    return;
+  }
+
+  withTemporaryChartRange(startDate, endDate, () => {
+    const filename = `${safeFileName(activeFileTitle || "chunkr")}_${dateKey(startDate)}_to_${dateKey(endDate)}.png`;
+    const link = document.createElement("a");
+    link.download = filename;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    activeFileStatus.textContent = `Downloaded chart from ${dateKey(startDate)} to ${dateKey(endDate)}.`;
+  });
+}
+
+function downloadPng() {
+  if (!requireActiveFile()) return;
+  drawChart(true);
+  const rows = parseCsv(csvBox.value);
+  const latest = rows.length ? rows.reduce((max, r) => r.date > max ? r.date : max, rows[0].date) : new Date();
+  const link = document.createElement("a");
+  link.download = `${safeFilename(activeFileTitle)}_${dateKey(latest).replaceAll("-", "")}.png`;
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+}
+
+function downloadCsv() {
+  if (!requireActiveFile()) return;
+  saveTableChanges();
+  const rows = parseCsv(csvBox.value);
+  const latest = rows.length ? rows.reduce((max, r) => r.date > max ? r.date : max, rows[0].date) : new Date();
+  const blob = new Blob([csvBox.value], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.download = `${safeFilename(activeFileTitle)}_${dateKey(latest).replaceAll("-", "")}.csv`;
+  link.href = url;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function resetSettings() {
+  if (!requireActiveFile()) return;
+  const theme = document.getElementById("themeToggle").checked ? "light" : "dark";
+  const settings = clone(DEFAULT_SETTINGS);
+  settings.theme = theme;
+  settings.colours = clone(THEME_PALETTES[theme]);
+  settings.doseColours = {};
+  settings.showNotes = false;
+  settings.title = `${activeFileTitle} (Updated to [latest date])`;
+  putSettingsIntoInputs(settings);
+  applyPageTheme(theme);
+  drawChart();
+}
+
+function applySettings() {
+  if (!requireActiveFile()) return;
+  drawChart();
+}
+
+function importCsvFile(file) {
+  if (!requireActiveFile()) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const text = String(reader.result || "");
+    const rows = parseCsv(text);
+    csvBox.value = rows.length ? toCsv(rows) : EMPTY_CSV;
+    drawChart();
+  };
+  reader.readAsText(file);
+}
+
+function setToday() {
+  if (!requireActiveFile()) return;
+  document.getElementById("newDate").value = dateKey(new Date());
+  document.getElementById("newWeight").focus();
+}
+
+function setNextDay() {
+  if (!requireActiveFile()) return;
+  const dateInput = document.getElementById("newDate");
+  const current = parseDateOnly(dateInput.value);
+  if (current) {
+    dateInput.value = dateKey(addDays(current, 1));
+  } else {
+    const rows = parseCsv(csvBox.value);
+    if (rows.length > 0) {
+      const latest = rows.reduce((max, r) => r.date > max ? r.date : max, rows[0].date);
+      dateInput.value = dateKey(addDays(latest, 1));
+    } else {
+      dateInput.value = dateKey(new Date());
+    }
+  }
+  document.getElementById("newWeight").focus();
+}
+
+function openDatePicker() {
+  const dateInput = document.getElementById("newDate");
+  if (dateInput.disabled) return;
+  dateInput.focus();
+
+  if (typeof dateInput.showPicker === "function") {
+    try {
+      dateInput.showPicker();
+      return;
+    } catch (e) {}
+  }
+
+  dateInput.click();
+}
+
+function changeTheme() {
+  const theme = document.getElementById("themeToggle").checked ? "light" : "dark";
+  applyPageTheme(theme);
+  applyThemeToGraphColours(theme);
+  if (activeFileTitle) drawChart();
+  else drawEmptyChart(getSettingsFromInputs(), "Create a user title to begin");
+}
+
+
+let choonAudioContext = null;
+let choonTimers = [];
+let choonActiveNodes = [];
+let choonIsPlaying = false;
+let choonPlayIndex = -1;
+let choonRunId = 0;
+let chartRangeOverride = null;
+
+function clearChoonTimers() {
+  choonTimers.forEach(id => clearTimeout(id));
+  choonTimers = [];
+}
+
+function stopChoon(showStopped = true) {
+  choonRunId++;
+  clearChoonTimers();
+
+  choonActiveNodes.forEach(node => {
+    try {
+      if (typeof node.stop === "function") node.stop();
+    } catch (e) {}
+    try {
+      if (typeof node.disconnect === "function") node.disconnect();
+    } catch (e) {}
+  });
+
+  choonActiveNodes = [];
+  choonIsPlaying = false;
+  choonPlayIndex = -1;
+
+  if (activeFileTitle) {
+    try { drawChart(true); } catch (e) {}
+  }
+
+  const status = document.getElementById("choonStatus");
+  if (status && showStopped) {
+    status.textContent = "Stopped.";
+    status.classList.remove("choon-playing");
+  }
+}
+
+function midiToFreq(midi) {
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+function selectedChoonKeyRange() {
+  const start = Number(document.getElementById("choonStartKeyInput")?.value || 48);
+  const end = Number(document.getElementById("choonEndKeyInput")?.value || 72);
+  return {
+    low: Math.min(start, end),
+    high: Math.max(start, end),
+    start,
+    end
+  };
+}
+
+function midiForWeight(weight, minWeight, maxWeight) {
+  const keys = selectedChoonKeyRange();
+  const range = Math.max(0.1, maxWeight - minWeight);
+  const normalised = (maxWeight - weight) / range; // Lower weight = higher note
+  return keys.start + (keys.end - keys.start) * normalised;
+}
+
+function testChoonKeys() {
+  stopChoon(false);
+
+  choonAudioContext = choonAudioContext || new (window.AudioContext || window.webkitAudioContext)();
+  if (choonAudioContext.state === "suspended") choonAudioContext.resume();
+
+  const ctx = choonAudioContext;
+  const filter = createChoonFilter(ctx);
+  choonActiveNodes.push(filter);
+
+  const keys = selectedChoonKeyRange();
+  playTone(ctx, midiToFreq(keys.start), 0.55, "triangle", 0.08, filter);
+
+  const t = setTimeout(() => {
+    playTone(ctx, midiToFreq(keys.end), 0.75, "triangle", 0.08, filter);
+  }, 700);
+
+  const end = setTimeout(() => {
+    try { filter.disconnect(); } catch (e) {}
+    choonActiveNodes = choonActiveNodes.filter(node => node !== filter);
+    const status = document.getElementById("choonStatus");
+    if (status) {
+      status.textContent = `Tested start key and end key.`;
+      status.classList.remove("choon-playing");
+    }
+  }, 1700);
+
+  choonTimers.push(t, end);
+
+  const status = document.getElementById("choonStatus");
+  if (status) {
+    status.textContent = `Testing start key then end key.`;
+    status.classList.add("choon-playing");
+  }
+}
+
+function scaleIntervals(name) {
+  if (name === "minor") return [0, 2, 3, 5, 7, 8, 10, 12];
+  if (name === "major") return [0, 2, 4, 5, 7, 9, 11, 12];
+  return [0, 3, 5, 7, 10, 12];
+}
+
+function daysBetweenDates(a, b) {
+  return Math.max(1, Math.round((b.date - a.date) / 86400000));
+}
+
+function choonEventRows(rows) {
+  return rows
+    .filter(r => r.weight !== null || r.dose !== null)
+    .sort((a, b) => a.date - b.date);
+}
+
+function lastKnownWeightUpTo(rows, index) {
+  for (let i = index; i >= 0; i--) {
+    if (rows[i].weight !== null) return rows[i].weight;
+  }
+  for (let i = index + 1; i < rows.length; i++) {
+    if (rows[i].weight !== null) return rows[i].weight;
+  }
+  return null;
+}
+
+
+function createChoonFilter(ctx) {
+  const filter = ctx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 1450;
+  filter.Q.value = 0.7;
+  filter.connect(ctx.destination);
+  return filter;
+}
+
+function playTone(ctx, freq, duration, type = "triangle", gainValue = 0.075, destination = null) {
+  const oscillator = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(freq, ctx.currentTime);
+
+  gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(gainValue, ctx.currentTime + 0.035);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, gainValue * 0.55), ctx.currentTime + duration * 0.55);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+
+  oscillator.connect(gain);
+  gain.connect(destination || ctx.destination);
+
+  oscillator.start();
+  oscillator.stop(ctx.currentTime + duration + 0.05);
+
+  choonActiveNodes.push(oscillator, gain);
+
+  oscillator.addEventListener("ended", () => {
+    choonActiveNodes = choonActiveNodes.filter(node => node !== oscillator && node !== gain);
+  });
+}
+
+function playChord(ctx, baseFreq, dose, duration, destination = null) {
+  const doseNumber = Number(dose) || 0;
+
+  // Higher dose = deeper chord. The bass root drops as dose rises.
+  const depthShift = Math.max(0.32, 1 - (Math.max(0, doseNumber - 2.5) / 15));
+  const root = baseFreq * depthShift;
+
+  let chord;
+  if (doseNumber >= 10) {
+    chord = [0.5, 1, 1.1892, 1.4983];      // deep minor-ish colour
+  } else if (doseNumber >= 7.5) {
+    chord = [0.5946, 1, 1.25, 1.5];        // deeper, fuller
+  } else if (doseNumber >= 5) {
+    chord = [0.7071, 1, 1.2, 1.5];         // mid-depth
+  } else {
+    chord = [1, 1.25, 1.6667];             // lighter
+  }
+
+  chord.forEach((ratio, index) => {
+    const t = setTimeout(() => {
+      if (!choonIsPlaying) return;
+      playTone(ctx, root * ratio, duration, "sine", 0.048, destination);
+    }, index * 55);
+    choonTimers.push(t);
+  });
+}
+
+function getChartGeometryForChoon(rows) {
+  const W = canvas.width;
+  const H = canvas.height;
+  const margin = { left: 120, right: 150, top: 90, bottom: 180 };
+  const plotX = margin.left;
+  const plotY = margin.top;
+  const plotW = W - margin.left - margin.right;
+  const plotH = H - margin.top - margin.bottom;
+
+  const start = rows[0].date;
+  const latest = rows.reduce((max, r) => r.date > max ? r.date : max, rows[0].date);
+  const settings = getSettingsFromInputs();
+  const yMin = settings.yMin;
+  const yMax = settings.yMax;
+
+  const xScale = d => {
+    const t0 = start.getTime();
+    const t1 = latest.getTime();
+    if (t1 === t0) return plotX + plotW / 2;
+    return plotX + ((d.getTime() - t0) / (t1 - t0)) * plotW;
+  };
+
+  const yScale = kg => plotY + ((yMax - kg) / (yMax - yMin)) * plotH;
+
+  return { plotX, plotY, plotW, plotH, xScale, yScale, settings };
+}
+
+function drawChoonProgress(eventRows, index) {
+  drawChart(true);
+
+  if (!eventRows[index]) return;
+
+  const g = getChartGeometryForChoon(eventRows);
+  const row = eventRows[index];
+  const fallbackWeight = lastKnownWeightUpTo(eventRows, index);
+  const markerWeight = row.weight !== null ? row.weight : (fallbackWeight !== null ? fallbackWeight : (g.settings.yMin + g.settings.yMax) / 2);
+  const x = g.xScale(row.date);
+  const y = g.yScale(markerWeight);
+
+  ctx.save();
+
+  ctx.strokeStyle = g.settings.theme === "light" ? "rgba(36, 91, 216, 0.85)" : "rgba(255, 210, 74, 0.9)";
+  ctx.lineWidth = 8;
+  ctx.setLineDash([18, 12]);
+  ctx.beginPath();
+  ctx.moveTo(x, g.plotY);
+  ctx.lineTo(x, g.plotY + g.plotH);
+  ctx.stroke();
+
+  ctx.setLineDash([]);
+  ctx.fillStyle = row.weight !== null
+    ? (g.settings.theme === "light" ? "rgba(36, 91, 216, 0.95)" : "rgba(255, 210, 74, 0.95)")
+    : (g.settings.theme === "light" ? "rgba(120, 67, 210, 0.95)" : "rgba(205, 150, 255, 0.95)");
+  ctx.beginPath();
+  ctx.arc(x, y, row.weight !== null ? 18 : 15, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = g.settings.colours.plotBg;
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.arc(x, y, row.weight !== null ? 10 : 8, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = g.settings.text || g.settings.colours.text;
+  ctx.font = "24px system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "bottom";
+  ctx.fillText(`${index + 1}/${eventRows.length}`, x, Math.max(g.plotY + 28, y - 24));
+
+  ctx.restore();
+}
+
+function playChunkrChoon() {
+  if (!requireActiveFile()) return;
+
+  // Stop the old performance silently before starting a new one.
+  stopChoon(false);
+
+  const status = document.getElementById("choonStatus");
+
+  try {
+    const rows = parseCsv(csvBox.value);
+    const eventRows = choonEventRows(rows);
+    const weightRows = eventRows.filter(r => r.weight !== null);
+
+    if (eventRows.length < 1) {
+      if (status) {
+        status.textContent = "Add at least one weight or dose entry first.";
+        status.classList.remove("choon-playing");
+      }
+      markError("newDate", "Add at least one weight or dose entry first.");
+      return;
+    }
+
+    choonAudioContext = choonAudioContext || new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = choonAudioContext;
+
+    const runId = ++choonRunId;
+
+    const beginPlayback = () => {
+      if (runId !== choonRunId) return;
+
+      const filter = createChoonFilter(ctx);
+      choonActiveNodes.push(filter);
+
+      const weights = weightRows.map(r => r.weight);
+      const minWeight = weights.length ? Math.min(...weights) : null;
+      const maxWeight = weights.length ? Math.max(...weights) : null;
+
+      const speedValue = Number(document.getElementById("choonSpeedInput").value) || 5;
+
+      // Proper speed control: higher = faster. One day on the x axis equals one beat.
+      const beatMs = Math.round(900 - (speedValue - 1) * 80); // speed 1 = 900ms/day, speed 10 = 180ms/day
+      const intervals = scaleIntervals(document.getElementById("choonScaleInput").value);
+
+      // User-selected pitch range. Start key maps to the heavier end, end key maps to the lighter end.
+      const keyRange = selectedChoonKeyRange();
+
+      // X-axis time is the rhythm: date gap in days = gap in beats. No compression.
+      const schedule = [];
+      let currentOffsetMs = 0;
+      for (let i = 0; i < eventRows.length; i++) {
+        const daysUntilNext = i < eventRows.length - 1 ? daysBetweenDates(eventRows[i], eventRows[i + 1]) : 1;
+        const noteDuration = Math.max(0.16, (daysUntilNext * beatMs) / 1000);
+        const chordDuration = Math.max(0.75, Math.min(noteDuration, 2.6));
+
+        schedule.push({
+          offsetMs: currentOffsetMs,
+          daysUntilNext,
+          noteDuration,
+          chordDuration
+        });
+
+        currentOffsetMs += daysUntilNext * beatMs;
+      }
+
+      choonIsPlaying = true;
+      choonPlayIndex = -1;
+
+      if (status) {
+        status.textContent = `Playing ${eventRows.length} events. One day = one beat. Speed ${speedValue}/10. Jabs play even without weight.`;
+        status.classList.add("choon-playing");
+      }
+
+      eventRows.forEach((row, index) => {
+        const timing = schedule[index];
+
+        const timer = setTimeout(() => {
+          if (!choonIsPlaying || runId !== choonRunId) return;
+
+          choonPlayIndex = index;
+          drawChoonProgress(eventRows, index);
+
+          const weightForPitch = row.weight !== null ? row.weight : lastKnownWeightUpTo(eventRows, index);
+          let midi;
+          if (weightForPitch !== null && minWeight !== null && maxWeight !== null) {
+            midi = midiForWeight(weightForPitch, minWeight, maxWeight);
+          } else {
+            midi = (keyRange.start + keyRange.end) / 2;
+          }
+
+          const nearestScaleStep = Math.round(midi);
+          const freq = midiToFreq(nearestScaleStep);
+
+          // Weight rows play the melody. Dose-only rows still play their jab chord.
+          if (row.weight !== null) {
+            playTone(ctx, freq, timing.noteDuration, "triangle", 0.075, filter);
+            playTone(ctx, freq * 2.01, Math.max(0.12, timing.noteDuration * 0.72), "sine", 0.018, filter);
+          }
+
+          if (row.dose !== null) {
+            playChord(ctx, freq * 0.5, row.dose, timing.chordDuration, filter);
+          }
+        }, timing.offsetMs);
+
+        choonTimers.push(timer);
+      });
+
+      const endAtMs = currentOffsetMs + 350;
+
+      const endTimer = setTimeout(() => {
+        if (runId !== choonRunId) return;
+
+        choonIsPlaying = false;
+        choonPlayIndex = -1;
+        drawChart(true);
+
+        try {
+          filter.disconnect();
+        } catch (e) {}
+
+        choonActiveNodes = choonActiveNodes.filter(node => node !== filter);
+
+        if (status) {
+          status.textContent = `Played ${eventRows.length} events from ${dateKey(eventRows[0].date)} to ${dateKey(eventRows[eventRows.length - 1].date)}.`;
+          status.classList.remove("choon-playing");
+        }
+      }, Math.ceil(endAtMs));
+
+      choonTimers.push(endTimer);
+    };
+
+    if (ctx.state === "suspended") {
+      if (status) {
+        status.textContent = "Starting audio…";
+        status.classList.add("choon-playing");
+      }
+      ctx.resume().then(beginPlayback).catch(err => {
+        if (status) {
+          status.textContent = `Audio could not start: ${err.message || err}`;
+          status.classList.remove("choon-playing");
+        }
+      });
+    } else {
+      beginPlayback();
+    }
+  } catch (err) {
+    if (status) {
+      status.textContent = `Choon error: ${err.message || err}`;
+      status.classList.remove("choon-playing");
+    }
+  }
+}
+
+
+document.getElementById("newFileBtn").addEventListener("click", createNewFile);
+document.getElementById("openFileBtn").addEventListener("click", openSelectedFile);
+document.getElementById("fileSelect").addEventListener("change", openSelectedFile);
+document.getElementById("renameFileBtn").addEventListener("click", renameCurrentFile);
+document.getElementById("deleteFileBtn").addEventListener("click", deleteCurrentFile);
+document.getElementById("themeToggle").addEventListener("change", changeTheme);
+
+document.getElementById("dateClickZone").addEventListener("click", event => {
+  if (event.target.id !== "newDate") openDatePicker();
+});
+
+document.getElementById("newFileTitle").addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    createNewFile();
+  }
+});
+
+document.getElementById("addRowBtn").addEventListener("click", addOrUpdateRow);
+["newDate", "newWeight", "newDose", "newNote"].forEach(id => {
+  document.getElementById(id).addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      addOrUpdateRow();
+    }
+  });
+});
+
+document.getElementById("todayBtn").addEventListener("click", setToday);
+document.getElementById("nextDayBtn").addEventListener("click", setNextDay);
+document.getElementById("clearFieldsBtn").addEventListener("click", clearFields);
+document.getElementById("downloadPngBtn").addEventListener("click", downloadPng);
+document.getElementById("downloadRangePngBtn").addEventListener("click", downloadRangePng);
+document.getElementById("downloadCsvBtn").addEventListener("click", downloadCsv);
+document.getElementById("playChoonBtn").addEventListener("click", playChunkrChoon);
+document.getElementById("stopChoonBtn").addEventListener("click", stopChoon);
+document.getElementById("testKeysBtn").addEventListener("click", testChoonKeys);
+document.getElementById("clearAllDataBtn").addEventListener("click", clearAllData);
+document.getElementById("clearRawCsvBtn").addEventListener("click", clearAllData);
+document.getElementById("saveTableBtn").addEventListener("click", saveTableChanges);
+document.getElementById("sortTableBtn").addEventListener("click", saveTableChanges);
+document.getElementById("applySettingsBtn").addEventListener("click", applySettings);
+document.getElementById("resetSettingsBtn").addEventListener("click", resetSettings);
+document.getElementById("redrawFromCsvBtn").addEventListener("click", () => {
+  if (!requireActiveFile()) return;
+  drawChart();
+});
+document.getElementById("importCsvBtn").addEventListener("click", () => {
+  if (!requireActiveFile()) return;
+  document.getElementById("importCsvFile").click();
+});
+document.getElementById("importCsvFile").addEventListener("change", event => {
+  const file = event.target.files && event.target.files[0];
+  if (file) importCsvFile(file);
+});
+
+document.querySelectorAll('input[type="color"]').forEach(input => {
+  if (input.closest("#doseColourGrid")) return;
+  input.addEventListener("input", () => {
+    if (!activeFileTitle) return;
+    clearTimeout(window.__colourTimer);
+    window.__colourTimer = setTimeout(drawChart, 120);
+  });
+});
+
+["titleInput", "yMinInput", "yMaxInput", "heightInput", "showNotesInput"].forEach(id => {
+  document.getElementById(id).addEventListener("change", () => {
+    if (!activeFileTitle) return;
+    drawChart();
+  });
+});
+
+csvBox.addEventListener("input", () => {
+  if (!activeFileTitle) return;
+  clearTimeout(window.__drawTimer);
+  window.__drawTimer = setTimeout(drawChart, 500);
+});
+
+
+["newFileTitle", "newDate", "newWeight", "newDose", "newNote", "titleInput", "yMinInput", "yMaxInput", "heightInput", "showNotesInput", "downloadStartDate", "downloadEndDate"].forEach(clearErrorOnInput);
+
+window.addEventListener("beforeunload", () => {
+  stopChoon();
+  saveCurrentFileFromScreen();
+});
+
+function initialise() {
+  applyPageTheme("light");
+
+  const files = loadFiles();
+  const titles = Object.keys(files).sort((a, b) => a.localeCompare(b));
+  const storedActive = localStorage.getItem(STORAGE_ACTIVE_FILE_KEY);
+
+  if (storedActive && files[storedActive]) {
+    loadFileIntoScreen(storedActive);
+  } else if (titles.length > 0) {
+    loadFileIntoScreen(titles[0]);
+  } else {
+    initialiseNoFileState();
+  }
+}
+
+initialise();
+</script>
+</body>
+</html>
