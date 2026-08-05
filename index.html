@@ -1,3607 +1,889 @@
+<!--
+  BOXXY — Pushbox Puzzle
+  Copyright © 2026 Sam Cornwell. All rights reserved.
+  Personal non-commercial use only. See LICENSE.md.
+  Third-party material is identified in THIRD-PARTY-NOTICES.md.
+-->
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>CHUNKR</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-  :root {
-    --bg: #101010;
-    --panel: #1b1b1b;
-    --panel2: #141414;
-    --text: #f2f2f2;
-    --muted: #bdbdbd;
-    --border: #3a3a3a;
-    --button: #2f6fed;
-    --button2: #333333;
-    --danger: #7a1e1e;
-    --focus: #ffd24a;
-    --input-bg: #0c0c0c;
-    --input-text: #f2f2f2;
-    --date-bg: #171717;
-    --date-border: #8a8a8a;
-    --date-hover: #242424;
-  }
-
-  html[data-theme="light"] {
-    --bg: #f3f3f3;
-    --panel: #ffffff;
-    --panel2: #f7f7f7;
-    --text: #111111;
-    --muted: #4d4d4d;
-    --border: #c8c8c8;
-    --button: #245bd8;
-    --button2: #666666;
-    --danger: #a92323;
-    --focus: #245bd8;
-    --input-bg: #ffffff;
-    --input-text: #111111;
-    --date-bg: #ffffff;
-    --date-border: #555555;
-    --date-hover: #eeeeee;
-  }
-
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    margin: 0;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-  }
-
-  .theme-corner {
-    position: fixed;
-    top: 14px;
-    right: 14px;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: color-mix(in srgb, var(--panel) 92%, transparent);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 7px 9px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-  }
-
-  .theme-corner-label {
-    font-size: 13px;
-    color: var(--muted);
-    user-select: none;
-  }
-
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 52px;
-    height: 28px;
-  }
-
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    inset: 0;
-    background-color: #444;
-    transition: 0.2s;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-  }
-
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 22px;
-    width: 22px;
-    left: 3px;
-    bottom: 2px;
-    background-color: white;
-    transition: 0.2s;
-    border-radius: 50%;
-  }
-
-  .switch input:checked + .slider {
-    background-color: #e4c24a;
-  }
-
-  .switch input:checked + .slider:before {
-    transform: translateX(23px);
-    background-color: #111;
-  }
-
-  .wrap {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 18px;
-    padding-top: 22px;
-  }
-
-  .brand-header {
-    text-align: center;
-    padding: 12px 150px 24px 150px;
-  }
-
-  .brand-logo {
-    display: inline-block;
-    color: var(--text);
-    font-family: Avenir Next, Avenir, Montserrat, Futura, Trebuchet MS, Arial, sans-serif;
-    font-weight: 900;
-    font-size: clamp(48px, 8vw, 94px);
-    letter-spacing: -0.07em;
-    line-height: 1;
-    text-transform: uppercase;
-  }
-
-  .brand-kicker {
-    display: block;
-    margin-top: 8px;
-    color: var(--muted);
-    font-family: Avenir Next, Avenir, Montserrat, Futura, Trebuchet MS, Arial, sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.34em;
-    text-transform: uppercase;
-  }
-
-  .brand-meta {
-    display: flex;
-    justify-content: center;
-    align-items: baseline;
-    gap: 10px;
-    margin-top: 8px;
-  }
-
-  .beta-tag {
-    display: inline-block;
-    color: var(--muted);
-    font-family: Avenir Next, Avenir, Montserrat, Futura, Trebuchet MS, Arial, sans-serif;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: lowercase;
-  }
-
-  .brand-stripe {
-    display: none;
-  }
-  h2 {
-    margin: 0;
-    font-size: 18px;
-  }
-
-  p {
-    color: var(--muted);
-    line-height: 1.45;
-    margin: 0 0 14px;
-  }
-
-  .card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 14px;
-  }
-
-  .file-card {
-    border: 2px solid var(--border);
-  }
-
-  details.card {
-    padding: 0;
-    overflow: hidden;
-  }
-
-  details.card > summary {
-    list-style: none;
-    cursor: pointer;
-    padding: 12px;
-    user-select: none;
-  }
-
-  details.card > summary::-webkit-details-marker {
-    display: none;
-  }
-
-  details.card > summary .summary-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  details.card > summary .summary-title {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-
-  details.card > summary .summary-subtitle {
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 400;
-  }
-
-  details.card > summary .chevron::after {
-    content: "Expand";
-    color: var(--muted);
-    font-size: 13px;
-    border: 1px solid var(--border);
-    padding: 5px 8px;
-    border-radius: 999px;
-  }
-
-  details.card[open] > summary .chevron::after {
-    content: "Collapse";
-  }
-
-  .details-body {
-    padding: 0 12px 12px;
-  }
-
-  .controls,
-  .settings-grid,
-  .colour-grid,
-  .data-controls,
-  .file-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: end;
-  }
-
-  .settings-grid {
-    align-items: start;
-  }
-
-  .file-controls {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-    align-items: stretch;
-    max-width: 520px;
-  }
-
-  .file-controls > div,
-  .file-controls button {
-    width: 100%;
-  }
-
-  .file-controls input,
-  .file-controls select {
-    width: 100%;
-  }
-
-
-  label {
-    display: block;
-    color: var(--muted);
-    font-size: 13px;
-    margin-bottom: 4px;
-  }
-
-  input, textarea, select {
-    background: var(--input-bg);
-    color: var(--input-text);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 9px;
-    font: inherit;
-  }
-
-  input:focus, textarea:focus, select:focus {
-    outline: 3px solid color-mix(in srgb, var(--focus) 35%, transparent);
-    border-color: var(--focus);
-  }
-
-  input[type="text"] {
-    min-width: 360px;
-  }
-
-  input[type="number"] {
-    width: 135px;
-  }
-
-  input[type="color"] {
-    width: 64px;
-    height: 42px;
-    padding: 4px;
-  }
-
-  select {
-    min-width: 220px;
-  }
-
-  button {
-    border: 0;
-    border-radius: 8px;
-    padding: 10px 13px;
-    color: white;
-    background: var(--button);
-    font-weight: 650;
-    cursor: pointer;
-  }
-
-  button.secondary {
-    background: var(--button2);
-  }
-
-  button.danger {
-    background: var(--danger);
-  }
-
-  button.small {
-    padding: 6px 9px;
-    font-size: 13px;
-  }
-
-  button:disabled,
-  input:disabled,
-  select:disabled,
-  textarea:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-
-  .date-entry-box {
-    min-width: 190px;
-  }
-
-  .date-click-zone {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--date-bg);
-    border: 1px solid var(--date-border);
-    border-radius: 8px;
-    padding: 4px 6px;
-    cursor: pointer;
-  }
-
-  .date-click-zone:hover {
-    background: var(--date-hover);
-  }
-
-  .date-click-zone input[type="date"] {
-    width: 150px;
-    height: 38px;
-    min-height: 38px;
-    padding: 6px 7px;
-    border: 0;
-    background: transparent;
-    color: var(--input-text);
-    cursor: pointer;
-  }
-
-  html[data-theme="dark"] .date-click-zone input[type="date"]::-webkit-calendar-picker-indicator,
-  html[data-theme="dark"] .row-date::-webkit-calendar-picker-indicator {
-    filter: invert(1);
-    opacity: 0.95;
-  }
-
-  .calendar-hint {
-    font-size: 19px;
-    line-height: 1;
-    color: var(--muted);
-    pointer-events: none;
-  }
-
-  .date-help {
-    margin-top: 5px;
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  .mini-buttons {
-    display: flex;
-    gap: 6px;
-    margin-top: 8px;
-  }
-
-  .mini-buttons button {
-    padding: 6px 8px;
-    font-size: 12px;
-  }
-
-  canvas {
-    width: 100%;
-    height: auto;
-    display: block;
-    background: black;
-    border-radius: 8px;
-  }
-
-  textarea {
-    width: 100%;
-    height: 220px;
-    box-sizing: border-box;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 13px;
-    line-height: 1.35;
-    white-space: pre;
-  }
-
-  .status {
-    color: var(--muted);
-    margin-top: 8px;
-    font-size: 14px;
-  }
-
-  .status.strong {
-    color: var(--text);
-    font-weight: 700;
-  }
-
-  .small {
-    font-size: 13px;
-  }
-
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 10px;
-    color: var(--muted);
-    font-size: 13px;
-  }
-
-  .swatch {
-    display: inline-block;
-    width: 22px;
-    height: 0;
-    border-top: 3px solid white;
-    margin-right: 6px;
-    vertical-align: middle;
-  }
-
-  #doseLegend .swatch {
-    border-top-style: solid;
-  }
-
-  .stats-panel {
-    margin-top: 14px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: var(--panel2);
-    padding: 12px;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
-  }
-
-  .stat-card {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--panel);
-    padding: 10px;
-  }
-
-  .stat-label {
-    color: var(--muted);
-    font-size: 12px;
-    margin-bottom: 5px;
-  }
-
-  .stat-value {
-    color: var(--text);
-    font-size: 20px;
-    font-weight: 800;
-    line-height: 1.15;
-  }
-
-  .stat-note {
-    margin-top: 10px;
-    color: var(--muted);
-    font-size: 12px;
-    line-height: 1.35;
-  }
-
-  details.raw summary {
-    cursor: pointer;
-    color: var(--text);
-    font-weight: 700;
-    margin-bottom: 10px;
-  }
-
-  .subsection {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px;
-    margin-top: 14px;
-    background: var(--panel2);
-  }
-
-  .subsection h3 {
-    margin: 0 0 8px;
-    font-size: 15px;
-  }
-
-  .dose-colour-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .dose-colour-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px;
-    background: var(--panel);
-  }
-
-  .dose-colour-item label {
-    margin: 0;
-    color: var(--text);
-    min-width: 72px;
-  }
-
-  .table-wrap {
-    overflow: auto;
-    max-height: 460px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-
-  th, td {
-    border-bottom: 1px solid var(--border);
-    padding: 7px;
-    text-align: left;
-    white-space: nowrap;
-  }
-
-  th {
-    position: sticky;
-    top: 0;
-    background: var(--panel2);
-    z-index: 1;
-  }
-
-  tr:hover {
-    background: var(--panel2);
-  }
-
-  .row-input {
-    width: 100px !important;
-    padding: 6px;
-  }
-
-  .row-date {
-    width: 145px !important;
-    padding: 6px;
-  }
-
-  .row-note {
-    min-width: 220px !important;
-  }
-
-  .two-col {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-  }
-
-
-  .error-field,
-  .error-field:focus {
-    border-color: #ff3b3b !important;
-    outline: 3px solid rgba(255, 59, 59, 0.28) !important;
-  }
-
-  .error-zone {
-    border-color: #ff3b3b !important;
-    box-shadow: 0 0 0 3px rgba(255, 59, 59, 0.22);
-  }
-
-  .status.error {
-    color: #ff6b6b;
-    font-weight: 750;
-  }
-
-  .choon-playing {
-    color: #2f6fed;
-    font-weight: 750;
-  }
-
-  .shake-error {
-    animation: shakeError 0.22s linear 1;
-  }
-
-  @keyframes shakeError {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-3px); }
-    50% { transform: translateX(3px); }
-    75% { transform: translateX(-2px); }
-    100% { transform: translateX(0); }
-  }
-
-  @media (min-width: 1050px) {
-    .two-col {
-      grid-template-columns: minmax(0, 1.1fr) minmax(420px, 0.9fr);
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#efe5d4">
+<meta name="copyright" content="Copyright © 2026 Sam Cornwell. All rights reserved.">
+<title>BOXXY — Free Online Sokoban Pushbox Puzzle Game</title>
+<meta name="description" content="Play BOXXY, a free online Sokoban-style pushbox puzzle game with original levels, classic puzzle packs, mobile controls and no account required.">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<link rel="canonical" href="https://boxxy.io/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BOXXY">
+<meta property="og:title" content="BOXXY — Free Online Sokoban Pushbox Puzzle Game">
+<meta property="og:description" content="Play BOXXY, a free online Sokoban-style pushbox puzzle game with original levels, classic puzzle packs, mobile controls and no account required.">
+<meta property="og:url" content="https://boxxy.io/">
+<meta property="og:image" content="https://boxxy.io/assets/ui/boxxy-splash.png">
+<meta property="og:image:width" content="1672">
+<meta property="og:image:height" content="941">
+<meta property="og:image:alt" content="BOXXY pushbox puzzle game">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="BOXXY — Free Online Sokoban Pushbox Puzzle Game">
+<meta name="twitter:description" content="Play BOXXY, a free online Sokoban-style pushbox puzzle game with original levels, classic puzzle packs, mobile controls and no account required.">
+<meta name="twitter:image" content="https://boxxy.io/assets/ui/boxxy-splash.png">
+<meta name="application-name" content="BOXXY">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://boxxy.io/#website",
+      "url": "https://boxxy.io/",
+      "name": "BOXXY",
+      "alternateName": ["BOXXY — Pushbox Puzzle", "boxxy.io"],
+      "description": "A free online Sokoban-style pushbox puzzle game with original levels, classic puzzle packs and mobile controls.",
+      "inLanguage": "en-GB"
+    },
+    {
+      "@type": "VideoGame",
+      "@id": "https://boxxy.io/#game",
+      "url": "https://boxxy.io/",
+      "name": "BOXXY",
+      "alternateName": "BOXXY — Pushbox Puzzle",
+      "description": "A free online Sokoban-style pushbox puzzle game with original levels, classic puzzle packs and mobile controls.",
+      "image": "https://boxxy.io/assets/ui/boxxy-splash.png",
+      "gamePlatform": "Web browser",
+      "genre": ["Puzzle", "Sokoban"],
+      "playMode": "SinglePlayer",
+      "isAccessibleForFree": true,
+      "author": {
+        "@type": "Person",
+        "name": "Sam Cornwell"
+      },
+      "copyrightHolder": {
+        "@type": "Person",
+        "name": "Sam Cornwell"
+      },
+      "copyrightYear": 2026,
+      "inLanguage": "en-GB",
+      "isPartOf": {
+        "@id": "https://boxxy.io/#website"
+      }
     }
+  ]
+}
+</script>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="BOXXY">
+<link rel="icon" href="assets/ui/icons/boxxy-yellow-crate-v150.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="assets/ui/icons/boxxy-yellow-crate-v150.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/ui/icons/boxxy-yellow-crate-v150-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/ui/icons/boxxy-yellow-crate-v150-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/ui/icons/boxxy-yellow-crate-touch-v150.png">
+<link rel="manifest" href="boxxy.webmanifest">
+<link rel="preload" as="image" href="assets/ui/boxxy-splash.png" fetchpriority="high">
+<script>
+  /* BOXXY v228 — Google Search metadata, canonical URL, social previews and structured data. */
+  /* BOXXY v227 — prevent accidental iPhone/iPad selection while preserving editable fields. */
+  /* BOXXY v196 — reliable first-load splash and startup loading gate. */
+  /* BOXXY v224 — tutorial board artwork uses the current individual assets. */
+  /* BOXXY v220 — Daily and standard completion actions are structurally separate. */
+  /* BOXXY v218 — exact Daily dates in navigation and removal of the Minimum stat. */
+  /* BOXXY v217 — Daily archive, past-date replay, saved scores and next-puzzle countdown. */
+  /* BOXXY v205 — shorter mobile Daily Complete modal and single-line heading. */
+  /* BOXXY v203 — corrected Daily share emoji, copy-text control and coming-soon wording. */
+  /* BOXXY v202 — optically aligned, equally spaced streak and completion badges. */
+  /* BOXXY v201 — supplied streak-flame artwork with coded day count inside the flame. */
+  /* BOXXY v200 — Daily Boxxy puzzle, local-midnight rollover, sharing and streak flame. */
+  /* BOXXY v195 — legal modal, Zen next-level control, lower landscape arrows and mobile music pause. */
+  /* BOXXY v180 — responsive completion modal with unclipped pack cards and varied star messages. */
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog&&window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
+  posthog.init("phc_m3pTt7JcQ89N9kGZjSkceiqWdRgjPypmAQxZVq5goJfh", {
+    api_host: "https://eu.i.posthog.com",
+    ui_host: "https://eu.posthog.com",
+    defaults: "2026-05-30",
+    cookieless_mode: "always",
+    autocapture: false,
+    disable_session_recording: true,
+    capture_pageview: true,
+    capture_pageleave: true,
+    capture_dead_clicks: false,
+    capture_heatmaps: false,
+    capture_performance: false,
+    capture_exceptions: false,
+    rageclick: false,
+    disable_surveys: true,
+    advanced_disable_flags: true,
+    respect_dnt: true,
+    person_profiles: "identified_only",
+    mask_all_text: true,
+    mask_all_element_attributes: true,
+    loaded: function(instance) {
+      window.BOXXY_POSTHOG_READY = true;
+      window.BOXXY_POSTHOG_INSTANCE = instance;
+      window.dispatchEvent(new CustomEvent("boxxy-posthog-ready"));
+    },
+    before_send: function(event) {
+      if (!event) return null;
+      try {
+        var properties = event.properties || {};
+        var cleanUrl = function(value) {
+          if (typeof value !== "string" || !value) return value;
+          try {
+            var parsed = new URL(value, window.location.origin);
+            return parsed.origin + parsed.pathname;
+          } catch (_) {
+            return value.split(/[?#]/, 1)[0];
+          }
+        };
+        ["$current_url", "$referrer", "$initial_referrer"].forEach(function(key) {
+          if (properties[key]) properties[key] = cleanUrl(properties[key]);
+        });
+        properties["$title"] = "BOXXY — Pushbox Puzzle";
+        event.properties = properties;
+      } catch (_) {
+        /* URL cleaning must never block an analytics event. */
+      }
+      return event;
+    }
+  });
+</script>
+<script>
+  if ((navigator.maxTouchPoints || 0) > 0 || "ontouchstart" in window) {
+    document.documentElement.classList.add("touch-ui");
   }
-
-  @media (max-width: 720px) {
-    .theme-corner {
-      position: static;
-      width: fit-content;
-      margin: 10px 0 0 auto;
-    }
-
-    .brand-header {
-      padding: 8px 0 18px 0;
-    }
+  if (window.navigator.standalone === true) {
+    document.documentElement.classList.add("ios-standalone");
   }
-
-  @media (max-width: 760px) {
-    body {
-      overflow-x: hidden;
-    }
-
-    .wrap {
-      padding: 10px;
-      padding-top: 8px;
-    }
-
-    .theme-corner {
-      position: sticky;
-      top: 8px;
-      margin: 0 0 10px auto;
-      width: fit-content;
-      padding: 6px 8px;
-    }
-
-    .brand-header {
-      padding: 6px 0 18px 0;
-    }
-
-    .brand-logo {
-      font-size: clamp(42px, 16vw, 68px);
-      letter-spacing: -0.055em;
-    }
-
-    .brand-meta {
-      gap: 7px;
-      margin-top: 5px;
-      flex-wrap: wrap;
-    }
-
-    .brand-kicker {
-      font-size: 10px;
-      letter-spacing: 0.22em;
-    }
-
-    .beta-tag {
-      font-size: 9px;
-    }
-
-    .card,
-    details.card > summary,
-    .details-body {
-      border-radius: 10px;
-    }
-
-    .details-body {
-      padding: 0 10px 10px;
-    }
-
-    .summary-row {
-      align-items: flex-start !important;
-    }
-
-    details.card > summary .summary-subtitle {
-      font-size: 12px;
-    }
-
-    .file-controls,
-    .data-controls,
-    .settings-grid,
-    .colour-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      align-items: stretch;
-    }
-
-    .file-controls > div,
-    .data-controls > div,
-    .settings-grid > div,
-    .colour-grid > div {
-      width: 100%;
-    }
-
-    input[type="text"],
-    input[type="number"],
-    input[type="date"],
-    select,
-    textarea,
-    button {
-      width: 100%;
-      max-width: 100%;
-      min-width: 0;
-      font-size: 16px;
-    }
-
-    input[type="color"] {
-      width: 100%;
-      height: 44px;
-    }
-
-    .date-entry-box {
-      min-width: 0;
-      width: 100%;
-    }
-
-    .date-click-zone {
-      width: 100%;
-      justify-content: space-between;
-    }
-
-    .date-click-zone input[type="date"] {
-      width: 100%;
-      min-width: 0;
-      font-size: 16px;
-    }
-
-    .mini-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .chart-download-controls,
-    .range-download {
-      display: grid;
-      grid-template-columns: 1fr;
-      width: 100%;
-    }
-
-    .chart-download-controls > button,
-    .range-download button {
-      width: 100%;
-    }
-
-    .two-col {
-      grid-template-columns: 1fr;
-      gap: 10px;
-    }
-
-    canvas {
-      min-height: 280px;
-      object-fit: contain;
-    }
-
-    .card > div[style*="justify-content:flex-end"] {
-      justify-content: stretch !important;
-    }
-
-    .legend {
-      gap: 8px;
-      font-size: 12px;
-    }
-
-    .table-wrap {
-      max-height: 360px;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    table {
-      font-size: 13px;
-      min-width: 680px;
-    }
-
-    th, td {
-      padding: 6px;
-    }
-
-    .row-input,
-    .row-date,
-    .row-note {
-      width: 100% !important;
-      min-width: 90px !important;
-    }
-
-    .row-note {
-      min-width: 180px !important;
-    }
-
-    .dose-colour-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-    }
-
-    .dose-colour-item {
-      justify-content: space-between;
-    }
-
-    .dose-colour-item input[type="color"] {
-      width: 84px;
-    }
-  }
-
-  @media (max-width: 430px) {
-    .brand-logo {
-      font-size: 54px;
-    }
-
-    .brand-kicker {
-      letter-spacing: 0.16em;
-    }
-
-    button {
-      padding: 11px 12px;
-    }
-  }
-
-
-  .chart-download-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: end;
-    gap: 12px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-  }
-
-  .chart-download-controls > button {
-    width: auto;
-  }
-
-  .range-download {
-    display: flex;
-    align-items: end;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .range-download input[type="date"] {
-    min-width: 150px;
-  }
-
-
-  .height-pair {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr auto;
-    gap: 8px;
-    align-items: center;
-  }
-
-  .height-pair span {
-    color: var(--muted);
-    font-size: 14px;
-  }
-
-  @media (max-width: 760px) {
-    .stats-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-</style>
+</script>
+<link rel="stylesheet" href="styles.css?v=227">
+<link rel="stylesheet" href="how-to-play.css?v=225">
+<link rel="preload" as="image" href="assets/board/boxes/box-default-yellow.png?v=226">
+<link rel="preload" as="image" href="assets/board/goals/goal-red.png?v=226">
+<link rel="preload" as="image" href="assets/board/boxes/box-red.png?v=226">
 </head>
 <body>
-<div class="theme-corner" title="Switch light or dark mode">
-  <span id="themeLabel" class="theme-corner-label">Dark</span>
-  <label class="switch">
-    <input id="themeToggle" type="checkbox" aria-label="Toggle light mode">
-    <span class="slider"></span>
-  </label>
-</div>
-
-<div class="wrap">
-  <header class="brand-header" aria-label="CHUNKR">
-    <div class="brand-logo">CHUNKR</div>
-    <div class="brand-meta"><span class="brand-kicker">Weight tracker</span><span class="beta-tag">v.1.0 beta</span></div>
-  </header>
-
-  <details id="userDetails" class="card file-card" open>
-    <summary>
-      <div class="summary-row">
-        <div class="summary-title">
-          <h2 id="userBoxTitle">User</h2>
-          <div class="summary-subtitle">Create, open, rename, delete, and switch between saved users.</div>
-        </div>
-        <span class="chevron"></span>
-      </div>
-    </summary>
-    <div class="details-body">
-      <p class="small">Create a title first. Every reading and setting is then saved under that title. Each title must be different.</p>
-
-      <div class="file-controls">
-        <div>
-          <label for="newFileTitle">New user title</label>
-          <input id="newFileTitle" type="text">
-        </div>
-        <button id="newFileBtn">Start new user</button>
-
-        <div>
-          <label for="fileSelect">Open saved user</label>
-          <select id="fileSelect"></select>
-        </div>
-        <button id="openFileBtn" class="secondary">Open selected user</button>
-
-        <button id="renameFileBtn" class="secondary">Rename current user</button>
-        <button id="deleteFileBtn" class="danger">Delete current user</button>
-      </div>
-
-      <div id="activeFileStatus" class="status strong"></div>
+<div id="splashScreen" class="splash-screen" aria-hidden="false">
+  <div class="splash-inner">
+    <div class="splash-logo-wrap">
+      <img src="assets/ui/boxxy-splash.png" width="1672" height="941" fetchpriority="high" decoding="sync" alt="BOXXY splash screen logo">
+      <span class="splash-sheen" aria-hidden="true"></span>
     </div>
-  </details>
-
-  <div id="mainApp">
-    <div class="card">
-      <h2 style="margin-bottom:10px;">Add a new data point</h2>
-      <p class="small">After you add a row, the form automatically moves to the next date and clears the weight/dose boxes, so you can keep entering lines.</p>
-      <div class="data-controls">
-        <div class="date-entry-box">
-          <label for="newDate">Date</label>
-          <div id="dateClickZone" class="date-click-zone" title="Click anywhere here to choose a date">
-            <input id="newDate" type="date">
-            <span class="calendar-hint">▾</span>
-          </div>
-          <div class="mini-buttons">
-            <button id="todayBtn" class="secondary" type="button">Today</button>
-            <button id="nextDayBtn" class="secondary" type="button">Next day</button>
-          </div>
-        </div>
-        <div>
-          <label id="newWeightLabel" for="newWeight">Weight kg</label>
-          <input id="newWeight" type="number" step="0.1">
-        </div>
-        <div>
-          <label for="newDose">Dose</label>
-          <input id="newDose" type="number" step="0.1">
-        </div>
-        <div>
-          <label for="newNote">Note</label>
-          <input id="newNote" type="text">
-        </div>
-        <button id="addRowBtn">Add data point</button>
-        <button id="clearFieldsBtn" class="secondary">Clear fields</button>
-        <button id="downloadCsvBtn" class="secondary">Download CSV</button>
-        <button id="importCsvBtn" class="secondary">Import CSV</button>
-        <input id="importCsvFile" type="file" accept=".csv,text/csv" style="display:none;">
+    <div class="splash-loading" role="status" aria-live="polite">
+      <div class="splash-progress-track" aria-hidden="true">
+        <span id="splashProgressBar"></span>
       </div>
-    </div>
-
-    <div class="two-col">
-      <div class="card">
-        <div class="chart-download-controls">
-          <button id="downloadPngBtn">Download full chart</button>
-          <div class="range-download">
-            <div>
-              <label for="downloadStartDate">From</label>
-              <input id="downloadStartDate" type="date">
-            </div>
-            <div>
-              <label for="downloadEndDate">To</label>
-              <input id="downloadEndDate" type="date">
-            </div>
-            <button id="downloadRangePngBtn" class="secondary">Download selected dates</button>
-          </div>
-        </div>
-        <canvas id="chart" width="3200" height="1800"></canvas>
-        <div class="legend">
-          <span><span class="swatch weight"></span>Weight</span>
-          <span id="doseLegend"></span>
-        </div>
-        <div id="statsPanel" class="stats-panel"></div>
-      </div>
-
-      <div class="card">
-        <h2 style="margin-bottom:10px;">Editable data table</h2>
-        <p class="small">Change any date, weight, or dose directly in the table. Leave weight blank for dose-only rows. Leave dose blank for normal weigh-ins.</p>
-        <div style="margin-bottom:10px;">
-          <button id="saveTableBtn">Save table changes</button>
-          <button id="sortTableBtn" class="secondary">Sort by date</button>
-          <button id="clearAllDataBtn" class="danger">Clear data in current file</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th id="weightTableHeader">Weight kg</th>
-                <th>Dose</th>
-                <th>Note</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="dataTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <details class="card" open>
-      <summary>
-        <div class="summary-row">
-          <div class="summary-title">
-            <h2>Graph settings</h2>
-            <div class="summary-subtitle">Change the chart title, scale, BMI height, BMI bands and dose colours.</div>
-          </div>
-          <span class="chevron"></span>
-        </div>
-      </summary>
-      <div class="details-body">
-        <div class="settings-grid">
-          <div>
-            <label for="titleInput">Graph title</label>
-            <input id="titleInput" type="text">
-          </div>
-          <div>
-            <label for="weightUnitInput">Weight units</label>
-            <select id="weightUnitInput">
-              <option value="kg">Kilograms (kg)</option>
-              <option value="lb">Pounds (lb)</option>
-            </select>
-          </div>
-          <div>
-            <label for="heightUnitInput">Height units</label>
-            <select id="heightUnitInput">
-              <option value="m">Metres (m)</option>
-              <option value="cm">Centimetres (cm)</option>
-              <option value="ftin">Feet + inches</option>
-            </select>
-          </div>
-          <div>
-            <label id="yMinLabel" for="yMinInput">Y-axis min kg</label>
-            <input id="yMinInput" type="number" step="0.1" value="75">
-          </div>
-          <div>
-            <label id="yMaxLabel" for="yMaxInput">Y-axis max kg</label>
-            <input id="yMaxInput" type="number" step="0.1" value="105">
-          </div>
-          <div id="heightMetricWrap">
-            <label for="heightInput">Height m for BMI bands</label>
-            <input id="heightInput" type="number" step="0.01" value="1.75">
-          </div>
-          <div id="heightCmWrap" style="display:none;">
-            <label for="heightCmInput">Height cm for BMI bands</label>
-            <input id="heightCmInput" type="number" step="0.1" value="175">
-          </div>
-          <div id="heightImperialWrap" style="display:none;">
-            <label>Height for BMI bands</label>
-            <div class="height-pair">
-              <input id="heightFeetInput" type="number" step="1" min="0" value="5" aria-label="Feet">
-              <span>ft</span>
-              <input id="heightInchesInput" type="number" step="0.1" min="0" max="11.9" value="9" aria-label="Inches">
-              <span>in</span>
-            </div>
-          </div>
-          <div>
-            <label for="showDosesInput">Dose lines</label>
-            <label style="display:flex;align-items:center;gap:8px;color:var(--text);">
-              <input id="showDosesInput" type="checkbox" style="width:auto;" checked>
-              Show dose lines
-            </label>
-          </div>
-          <div>
-            <label for="showNotesInput">Notes on graph</label>
-            <label style="display:flex;align-items:center;gap:8px;color:var(--text);">
-              <input id="showNotesInput" type="checkbox" style="width:auto;">
-              Show notes
-            </label>
-          </div>
-          <button id="applySettingsBtn">Apply settings</button>
-          <button id="resetSettingsBtn" class="secondary">Reset settings</button>
-        </div>
-
-        <details class="raw" style="margin-top:14px;">
-          <summary>Colours</summary>
-          <div class="colour-grid">
-            <div><label for="overallBgColour">Overall background</label><input id="overallBgColour" type="color" value="#000000"></div>
-            <div><label for="plotBgColour">Plot background</label><input id="plotBgColour" type="color" value="#000000"></div>
-            <div><label for="textColour">Text</label><input id="textColour" type="color" value="#f2f2f2"></div>
-            <div><label for="gridColour">Grid</label><input id="gridColour" type="color" value="#888888"></div>
-            <div><label for="weightColour">Weight line</label><input id="weightColour" type="color" value="#e6e6e6"></div>
-            <div><label for="bmiUnderColour">BMI below 18.5</label><input id="bmiUnderColour" type="color" value="#153d5a"></div>
-            <div><label for="bmiHealthyColour">BMI 18.5–25</label><input id="bmiHealthyColour" type="color" value="#0b3d0b"></div>
-            <div><label for="bmiOverColour">BMI 25–30</label><input id="bmiOverColour" type="color" value="#5a3b12"></div>
-            <div><label for="bmiObese1Colour">BMI 30–35</label><input id="bmiObese1Colour" type="color" value="#4a0b0b"></div>
-            <div><label for="bmiObese2Colour">BMI 35–40</label><input id="bmiObese2Colour" type="color" value="#601010"></div>
-            <div><label for="bmiObese3Colour">BMI 40+</label><input id="bmiObese3Colour" type="color" value="#7a1111"></div>
-          </div>
-
-          <div class="subsection">
-            <h3>Dose marker colours</h3>
-            <p class="small">Detected doses are added here automatically. New dose values get an automatic colour based on their numeric value, then you can override the colour if needed.</p>
-            <div id="doseColourGrid" class="dose-colour-grid"></div>
-          </div>
-        </details>
-
-        <div class="status" id="status"></div>
-      </div>
-    </details>
-
-
-
-    <div class="card" id="chunkrChoonBox">
-      <h2 style="margin-bottom:10px;">The Chunkr Choon</h2>
-      <p class="small">Turns the current data into a short tune. Lower weight plays a higher note. Every day on the x axis is one beat of time. Gaps between readings last for the same number of beats. Jabs still play chords even when no weight is entered.</p>
-      <div class="data-controls">
-        <button id="playChoonBtn">Play Choon</button>
-        <button id="stopChoonBtn" class="secondary">Stop</button>
-        <div>
-          <label for="choonSpeedInput">Speed</label>
-          <input id="choonSpeedInput" type="range" min="1" max="10" step="1" value="5">
-        </div>
-        <div>
-          <label for="choonScaleInput">Scale</label>
-          <select id="choonScaleInput">
-            <option value="major">Major</option>
-            <option value="minor">Minor</option>
-            <option value="pentatonic" selected>Pentatonic</option>
-          </select>
-        </div>
-        <div>
-          <label for="choonStartKeyInput">Start key</label>
-          <select id="choonStartKeyInput">
-            <option value="36">C2</option>
-            <option value="38">D2</option>
-            <option value="40">E2</option>
-            <option value="41">F2</option>
-            <option value="43">G2</option>
-            <option value="45">A2</option>
-            <option value="48" selected>C3</option>
-            <option value="50">D3</option>
-            <option value="52">E3</option>
-            <option value="53">F3</option>
-            <option value="55">G3</option>
-            <option value="57">A3</option>
-            <option value="60">C4</option>
-          </select>
-        </div>
-        <div>
-          <label for="choonEndKeyInput">End key</label>
-          <select id="choonEndKeyInput">
-            <option value="60">C4</option>
-            <option value="62">D4</option>
-            <option value="64">E4</option>
-            <option value="65">F4</option>
-            <option value="67">G4</option>
-            <option value="69">A4</option>
-            <option value="72" selected>C5</option>
-            <option value="74">D5</option>
-            <option value="76">E5</option>
-            <option value="77">F5</option>
-            <option value="79">G5</option>
-            <option value="81">A5</option>
-            <option value="84">C6</option>
-          </select>
-        </div>
-        <button id="testKeysBtn" class="secondary">Test keys</button>
-      </div>
-      <div id="choonStatus" class="status">Add weight or dose data, then press Play Choon.</div>
-    </div>
-
-    <div class="card">
-      <details class="raw">
-        <summary>Raw CSV data</summary>
-        <p class="small">CSV format: <strong>Date,Weight kg,Dose mg,Note</strong>. Example row: <strong>2026-06-23,80.8,7.5,Felt tired</strong></p>
-        <label for="csvBox">Data</label>
-        <textarea id="csvBox" spellcheck="false"></textarea>
-        <div style="margin-top:10px;">
-          <button id="redrawFromCsvBtn">Redraw from raw CSV</button>
-          <button id="clearRawCsvBtn" class="danger">Clear raw CSV in current file</button>
-        </div>
-      </details>
+      <span id="splashProgressText">LOADING BOXXY…</span>
     </div>
   </div>
 </div>
 
-<script>
-const EMPTY_CSV = `Date,Weight kg,Dose mg,Note`;
-const EXAMPLE_USER_TITLE = "Chunkr Christoph";
-const EXAMPLE_USER_CSV = `Date,Weight kg,Dose mg,Note
-2026-01-01,90.0,,Starting point
-2026-01-03,,1.0,
-2026-01-09,89.5,1.5,
-2026-01-12,89.5,,
-2026-01-14,,1.5,
-2026-01-15,89.6,,
-2026-01-22,,2.0,
-2026-01-23,85.9,,
-2026-01-28,85.9,,
-2026-01-29,,2.5,Appetite lower
-2026-02-01,86.0,,
-2026-02-05,85.3,,
-2026-02-06,,3.0,
-2026-02-09,84.6,,
-2026-02-13,,3.0,
-2026-02-17,86.9,,
-2026-02-19,,3.5,
-2026-02-20,85.0,,
-2026-02-26,,4.0,
-2026-02-28,82.3,,
-2026-03-02,,,Travel week
-2026-03-05,,4.0,
-2026-03-08,80.2,,
-2026-03-11,,4.5,
-2026-03-15,81.8,,
-2026-03-18,81.8,5.0,
-2026-03-23,,5.5,
-2026-03-25,81.4,,
-2026-03-31,81.3,,
-2026-04-01,,5.5,
-2026-04-03,80.0,,Good run of exercise
-2026-04-06,79.3,,
-2026-04-07,,6.0,
-2026-04-09,77.2,,
-2026-04-13,77.3,,
-2026-04-16,,6.5,
-2026-04-17,77.4,,
-2026-04-22,,6.5,
-2026-04-24,76.6,,
-2026-04-28,,7.0,
-2026-05-01,78.0,,
-2026-05-04,76.7,,
-2026-05-06,,7.5,
-2026-05-11,75.6,,
-2026-05-14,,8.0,
-2026-05-15,73.6,,
-2026-05-21,,8.0,
-2026-05-23,71.4,,
-2026-05-30,,8.5,
-2026-05-31,72.1,,
-2026-06-01,72.3,,Five month point`;
-
-const THEME_PALETTES = {
-  dark: {
-    overallBg: "#000000",
-    plotBg: "#000000",
-    text: "#f2f2f2",
-    grid: "#888888",
-    weight: "#e6e6e6",
-    bmiUnder: "#153d5a",
-    bmiHealthy: "#0b3d0b",
-    bmiOver: "#5a3b12",
-    bmiObese1: "#4a0b0b",
-    bmiObese2: "#601010",
-    bmiObese3: "#7a1111"
-  },
-  light: {
-    overallBg: "#ffffff",
-    plotBg: "#ffffff",
-    text: "#111111",
-    grid: "#777777",
-    weight: "#111111",
-    bmiUnder: "#bdd7ee",
-    bmiHealthy: "#bfe8bf",
-    bmiOver: "#ead6a8",
-    bmiObese1: "#efb6b6",
-    bmiObese2: "#e89191",
-    bmiObese3: "#dc6f6f"
-  }
-};
-
-const STANDARD_DOSE_COLOURS_DARK = {
-  "2.5": "#00e5ff",
-  "5": "#ff00ff",
-  "7.5": "#ffd700"
-};
-
-const STANDARD_DOSE_COLOURS_LIGHT = {
-  "2.5": "#008da3",
-  "5": "#b000b0",
-  "7.5": "#b88700"
-};
-
-const DEFAULT_SETTINGS = {
-  title: "Weight Progress (Updated to [latest date])",
-  yMin: 75,
-  yMax: 105,
-  heightM: 1.75,
-  weightUnit: "kg",
-  heightUnit: "m",
-  theme: "light",
-  colours: structuredClone(THEME_PALETTES.light),
-  doseColours: {},
-  showDoses: true,
-  showNotes: false,
-  yAutoRangedOnce: false
-};
-
-// New storage key for this revision.
-const STORAGE_FILES_KEY = "weight_progress_chart_named_files_v25";
-const STORAGE_ACTIVE_FILE_KEY = "weight_progress_chart_active_file_v25";
-
-const csvBox = document.getElementById("csvBox");
-const statusBox = document.getElementById("status");
-const activeFileStatus = document.getElementById("activeFileStatus");
-const fileSelect = document.getElementById("fileSelect");
-const mainApp = document.getElementById("mainApp");
-const canvas = document.getElementById("chart");
-const ctx = canvas.getContext("2d");
-const dataTableBody = document.getElementById("dataTableBody");
-const doseColourGrid = document.getElementById("doseColourGrid");
-const doseLegend = document.getElementById("doseLegend");
-const statsPanel = document.getElementById("statsPanel");
-
-let activeFileTitle = "";
-
-function clone(obj) {
-  return JSON.parse(JSON.stringify(obj));
-}
-
-function kgToLb(kg) {
-  return Number(kg) * 2.2046226218;
-}
-
-function lbToKg(lb) {
-  return Number(lb) / 2.2046226218;
-}
-
-function mToFtIn(m) {
-  const totalInches = Number(m) / 0.0254;
-  const feet = Math.floor(totalInches / 12);
-  const inches = totalInches - feet * 12;
-  return { feet, inches };
-}
-
-function ftInToM(feet, inches) {
-  return ((Number(feet) || 0) * 12 + (Number(inches) || 0)) * 0.0254;
-}
-
-function weightUnitFromInput() {
-  return document.getElementById("weightUnitInput")?.value === "lb" ? "lb" : "kg";
-}
-
-function heightUnitFromInput() {
-  const value = document.getElementById("heightUnitInput")?.value;
-  return value === "cm" || value === "ftin" ? value : "m";
-}
-
-function weightKgToDisplay(kg, weightUnit = weightUnitFromInput()) {
-  return weightUnit === "lb" ? kgToLb(kg) : Number(kg);
-}
-
-function weightDisplayToKg(weight, weightUnit = weightUnitFromInput()) {
-  return weightUnit === "lb" ? lbToKg(weight) : Number(weight);
-}
-
-function unitWeightLabel(weightUnit = weightUnitFromInput()) {
-  return weightUnit === "lb" ? "lb" : "kg";
-}
-
-function formatDisplayWeight(kg, weightUnit = weightUnitFromInput()) {
-  const value = weightKgToDisplay(kg, weightUnit);
-  return Number.isFinite(value) ? value.toFixed(1) : "";
-}
-
-function formatSignedWeightDelta(deltaKg, weightUnit = weightUnitFromInput()) {
-  const shown = weightKgToDisplay(deltaKg, weightUnit);
-  if (!Number.isFinite(shown)) return "—";
-  const sign = shown > 0 ? "+" : "";
-  return `${sign}${shown.toFixed(1)}${unitWeightLabel(weightUnit)}`;
-}
-
-function daysBetweenDateObjects(a, b) {
-  return Math.max(1, Math.round((b - a) / 86400000));
-}
-
-function formatKcal(value) {
-  if (!Number.isFinite(value)) return "—";
-  const rounded = Math.round(value);
-  return rounded.toLocaleString();
-}
-
-function renderStats(rows, settings) {
-  if (!statsPanel) return;
-
-  const weightRows = rows
-    .filter(r => r.weight !== null)
-    .sort((a, b) => a.date - b.date);
-
-  if (weightRows.length < 2) {
-    statsPanel.innerHTML = `
-      <div class="stat-note">Add at least two weight readings to show weight-change stats.</div>
-    `;
-    return;
-  }
-
-  const first = weightRows[0];
-  const latest = weightRows[weightRows.length - 1];
-  const days = daysBetweenDateObjects(first.date, latest.date);
-  const deltaKg = latest.weight - first.weight;
-  const lossKg = first.weight - latest.weight;
-  const direction = lossKg >= 0 ? "loss" : "gain";
-  const absLossKg = Math.abs(lossKg);
-
-  const dailyKg = absLossKg / days;
-  const weeklyKg = dailyKg * 7;
-  const monthlyKg = dailyKg * 30.4375;
-
-  // Rough energy estimate from observed scale change. No gender needed for this;
-  // gender/activity are only needed for estimating maintenance calories.
-  const kcalPerKg = 7700;
-  const totalKcal = absLossKg * kcalPerKg;
-  const dailyKcal = totalKcal / days;
-  const weeklyKcal = dailyKcal * 7;
-
-  statsPanel.innerHTML = `
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Total weight change</div>
-        <div class="stat-value">${formatSignedWeightDelta(deltaKg, settings.weightUnit)}</div>
+<main class="app">
+  <section class="play-area">
+    <header class="masthead">
+      <div class="title">
+        <div class="title-word-row">
+          <strong>BO<span id="makerHotspot" class="maker-hotspot">X</span>X<span id="firstPersonHotspot" class="first-person-hotspot">Y</span></strong>
+          <div class="title-badges">
+            <button id="dailyStreak" class="daily-streak-badge" type="button" data-tier="zero" data-digits="1" aria-label="Daily Boxxy streak: 0 days" title="Daily Boxxy streak: 0 days">
+              <span class="daily-streak-flame" aria-hidden="true"></span>
+              <span id="dailyStreakNumber" class="daily-streak-number" aria-hidden="true">0</span>
+            </button>
+            <div id="completedPackStars" class="completed-pack-stars" hidden aria-label="Completed puzzle packs"></div>
+          </div>
+        </div>
+        <span>PUSHBOX PUZZLE</span>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">Average ${direction}</div>
-        <div class="stat-value">${formatDisplayWeight(dailyKg, settings.weightUnit)}/day</div>
-        <div class="stat-note">${formatDisplayWeight(weeklyKg, settings.weightUnit)}/week · ${formatDisplayWeight(monthlyKg, settings.weightUnit)}/month</div>
+      <button id="collectionBtn" class="collection" type="button" aria-haspopup="dialog" aria-controls="packModal" title="Choose a puzzle pack"><b id="collectionName">BOXXY<br>ORIGINALS</b><i></i><span id="levelCount">1 / 50</span></button>
+    </header>
+
+    <section class="board-wrap">
+      <div id="bgDecor" class="bg-decor" aria-hidden="true"></div>
+      <div id="board" class="board" aria-label="BOXXY Pushbox Puzzle game board" tabindex="0">
+        <canvas id="firstPersonCanvas" class="first-person-canvas" hidden aria-label="First-person view of the current BOXXY puzzle"></canvas>
+        <div id="firstPersonBoom" class="first-person-boom" hidden aria-hidden="true">BOOM</div>
+        <div id="floorLayer" class="layer"></div>
+        <div id="voidLayer" class="layer"></div>
+        <div id="wallLayer" class="layer"></div>
+        <div id="goalLayer" class="layer"></div>
+        <div id="pieceLayer" class="layer"></div>
+        <div id="celebration" class="celebration" aria-hidden="true"></div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">Estimated calorie ${direction === "loss" ? "deficit" : "surplus"}</div>
-        <div class="stat-value">${formatKcal(totalKcal)} kcal</div>
-        <div class="stat-note">${formatKcal(dailyKcal)} kcal/day · ${formatKcal(weeklyKcal)} kcal/week</div>
+      <button id="mobileFullscreenBtn" class="mobile-fullscreen-btn" type="button" hidden aria-label="Enter full screen" aria-pressed="false" title="Enter full screen">
+        <svg class="mobile-fullscreen-enter" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M9 4H4v5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>
+        </svg>
+        <svg class="mobile-fullscreen-exit" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M9 4v5H4M15 4v5h5M15 20v-5h5M9 20v-5H4"/>
+        </svg>
+      </button>
+      <button id="zenNextBtn" class="zen-next-btn" type="button" hidden aria-label="Go to next level">
+        <span>NEXT LEVEL</span><b aria-hidden="true">→</b>
+      </button>
+      <button id="cancelGuidedBtn" class="cancel-guided-btn" type="button" hidden aria-label="Stop guided solve">
+        <span aria-hidden="true">■</span><b>STOP GUIDED SOLVE</b><small>ESC</small>
+      </button>
+    </section>
+
+    <footer class="instruction">
+      <span class="info" aria-hidden="true">“</span>
+      <span id="thoughtText" class="thought-text" aria-live="polite">Hmm. Which box first? Ice cream when this is done.</span>
+      <div id="dailyQuotePrompt" class="daily-quote-prompt" hidden>
+        <button id="dailyQuotePlay" class="daily-quote-play" type="button"><span>PLAY THE BOXXY DAILY</span><small id="dailyQuoteMeta">TODAY</small></button>
+        <button id="dailyQuoteDismiss" class="daily-quote-dismiss" type="button" aria-label="Dismiss Daily Boxxy invitation" title="Dismiss">×</button>
+      </div>
+      <button id="howToPlayBtn" class="how-to-play-trigger" type="button" aria-haspopup="dialog" aria-controls="howToPlayModal" aria-label="How to play BOXXY" title="How to play BOXXY">?</button>
+    </footer>
+  </section>
+
+  <aside class="side-panel">
+    <section class="credit"><strong id="creditTitle">MICROBAN COLLECTION</strong><span id="creditSub">DAVID W. SKINNER · 50 LEVELS</span></section>
+
+    <section class="stats">
+      <div><span>MOVES</span><strong id="moves">0</strong></div>
+      <div><span>PUSHES</span><strong id="pushes">0</strong></div>
+      <div><span>BEST</span><strong id="best">—</strong></div>
+      <div class="time"><span>TIME</span><strong id="time">00:00</strong></div>
+    </section>
+
+    <section class="top-actions">
+      <button id="undoBtn" class="action undo"><span>↶</span><b>UNDO</b></button>
+      <button id="savePositionBtn" class="action save-position" type="button" title="Save the current position"><span>▣</span><b>SAVE</b></button>
+      <button id="restartBtn" class="action"><span>↻</span><b>RESTART</b></button>
+    </section>
+
+    <section class="move-zone" aria-label="Movement and attire controls">
+      <section class="dpad" aria-label="Move controls">
+        <button data-dir="up" aria-label="Move up"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3 22 17H2Z"/></svg></button>
+        <button data-dir="left" aria-label="Move left"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12 17 2v20Z"/></svg></button>
+        <button data-dir="down" aria-label="Move down"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 7h20L12 21Z"/></svg></button>
+        <button data-dir="right" aria-label="Move right"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m21 12-14 10V2Z"/></svg></button>
+      </section>
+      <button id="styleBtn" class="attire-action" data-style-trigger type="button" aria-label="Change character attire" title="Change character attire">
+        <svg class="style-outfit-icon" viewBox="0 0 100 100" aria-hidden="true" focusable="false" shape-rendering="geometricPrecision">
+          <path class="style-hanger-hook" d="M50 27c0-7 10-8 12-2 2 5-3 8-7 10"/>
+          <path class="style-hanger-bar" d="M50 35 19 58h62L50 35Z"/>
+          <path class="style-shirt-body" d="M31 48 42 43c2 5 5 7 8 7s6-2 8-7l11 5 9 11-9 8-6-5v21H37V62l-6 5-9-8 9-11Z"/>
+          <path class="style-shirt-seam" d="M37 62h26M50 50v33"/>
+        </svg>
+        <b>ATTIRE</b>
+      </button>
+    </section>
+
+    <section class="bottom-actions">
+      <button id="soundBtn" class="action small"><span>◖))</span><b>SOUND ON</b></button>
+      <button id="musicBtn" class="action small" aria-pressed="true"><span>♫</span><b>MUSIC ON</b></button>
+      <button id="levelBtn" class="action small"><span>☰</span><b>LEVEL</b></button>
+      <button id="fullscreenBtn" class="action small fullscreen-action"><span>⛶</span><b>FULL SCREEN</b></button>
+    </section>
+
+    <section id="levelPicker" class="level-picker" hidden role="dialog" aria-modal="true" aria-labelledby="levelPickerTitle">
+      <div class="level-picker-head">
+        <strong id="levelPickerTitle">CHOOSE LEVEL</strong>
+        <button id="collectionCompleteStar" class="collection-complete-star" type="button" hidden aria-label="View collection congratulations" title="View collection congratulations">
+          <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+            <path d="M50 6 62.7 34.2 93.5 37.5 70.5 58.3 77 88.5 50 73 23 88.5 29.5 58.3 6.5 37.5 37.3 34.2Z"/>
+          </svg>
+        </button>
+        <div class="level-picker-tools">
+          <button id="styleBtnMobile" class="level-attire" data-style-trigger type="button" aria-label="Change character attire">
+            <svg class="style-outfit-icon" viewBox="0 0 100 100" aria-hidden="true" focusable="false" shape-rendering="geometricPrecision">
+              <path class="style-hanger-hook" d="M50 27c0-7 10-8 12-2 2 5-3 8-7 10"/>
+              <path class="style-hanger-bar" d="M50 35 19 58h62L50 35Z"/>
+              <path class="style-shirt-body" d="M31 48 42 43c2 5 5 7 8 7s6-2 8-7l11 5 9 11-9 8-6-5v21H37V62l-6 5-9-8 9-11Z"/>
+              <path class="style-shirt-seam" d="M37 62h26M50 50v33"/>
+            </svg>
+            <span>ATTIRE</span>
+          </button>
+          <button id="levelResetBtn" class="level-reset" type="button">RESET</button>
+          <button id="levelCloseBtn" class="level-close" type="button" aria-label="Close level chooser"><span aria-hidden="true">×</span></button>
+        </div>
+      </div>
+      <div id="levelButtons"></div>
+    </section>
+
+    <div class="palette" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+  </aside>
+</main>
+
+<div id="dailyInviteModal" class="modal daily-invite-modal" hidden>
+  <section class="daily-invite-card" role="dialog" aria-modal="true" aria-labelledby="dailyInviteTitle" aria-describedby="dailyInviteText">
+    <button id="dailyInviteClose" class="daily-invite-close" type="button" aria-label="Close Daily Boxxy invitation">×</button>
+    <span class="daily-invite-kicker">A NEW PUZZLE EVERY DAY</span>
+    <h2 id="dailyInviteTitle">BOXXY<br>DAILY</h2>
+    <p id="dailyInviteText">Today’s box-pushing puzzle is ready.</p>
+    <p id="dailyInviteStatus" class="daily-invite-status"></p>
+    <div class="daily-invite-actions">
+      <button id="dailyInviteLater" class="daily-invite-later" type="button">NOT NOW</button>
+      <button id="dailyInvitePlay" class="daily-invite-play" type="button"><span>PLAY TODAY’S PUZZLE</span><b aria-hidden="true">→</b></button>
+    </div>
+  </section>
+</div>
+
+<button id="makerReturnBtn" class="maker-return" type="button" hidden>LEVEL MAKER</button>
+
+<div id="styleModal" class="modal style-modal" hidden>
+  <section class="style-card" role="dialog" aria-modal="true" aria-labelledby="styleTitle">
+    <button id="styleCloseBtn" class="style-close" type="button" aria-label="Close character style">×</button>
+    <div class="style-preview">
+      <div class="style-preview-disc">
+        <canvas width="600" height="520" data-character-preview="player-front" aria-hidden="true"></canvas>
+      </div>
+      <div>
+        <span class="style-kicker">BAUHAUS WARDROBE</span>
+        <h2 id="styleTitle">CHARACTER STYLE</h2>
+        <p>Choose character, clothing, skin, hair and shoe colours.</p>
       </div>
     </div>
-    <div class="stat-note">Stats use the first and latest weight reading shown. Calorie estimate uses 7,700 kcal per kg of scale change, so water, glycogen and normal fluctuations will skew it.</div>
-  `;
-}
-
-function heightDisplayToM(heightUnit = heightUnitFromInput()) {
-  if (heightUnit === "cm") {
-    return Number(document.getElementById("heightCmInput").value) / 100;
-  }
-
-  if (heightUnit === "ftin") {
-    return ftInToM(document.getElementById("heightFeetInput").value, document.getElementById("heightInchesInput").value);
-  }
-
-  return Number(document.getElementById("heightInput").value);
-}
-
-function putHeightIntoInputs(heightM) {
-  const m = Number(heightM) || DEFAULT_SETTINGS.heightM;
-  document.getElementById("heightInput").value = m.toFixed(2);
-  document.getElementById("heightCmInput").value = (m * 100).toFixed(1);
-
-  const heightParts = mToFtIn(m);
-  document.getElementById("heightFeetInput").value = heightParts.feet;
-  document.getElementById("heightInchesInput").value = heightParts.inches.toFixed(1);
-}
-
-function updateUnitLabels() {
-  const weightUnit = weightUnitFromInput();
-  const heightUnit = heightUnitFromInput();
-
-  const newWeightLabel = document.getElementById("newWeightLabel");
-  if (newWeightLabel) newWeightLabel.textContent = `Weight ${unitWeightLabel(weightUnit)}`;
-
-  const tableHeader = document.getElementById("weightTableHeader");
-  if (tableHeader) tableHeader.textContent = `Weight ${unitWeightLabel(weightUnit)}`;
-
-  const yMinLabel = document.getElementById("yMinLabel");
-  const yMaxLabel = document.getElementById("yMaxLabel");
-  if (yMinLabel) yMinLabel.textContent = `Y-axis min ${unitWeightLabel(weightUnit)}`;
-  if (yMaxLabel) yMaxLabel.textContent = `Y-axis max ${unitWeightLabel(weightUnit)}`;
-
-  const metricWrap = document.getElementById("heightMetricWrap");
-  const cmWrap = document.getElementById("heightCmWrap");
-  const imperialWrap = document.getElementById("heightImperialWrap");
-  if (metricWrap) metricWrap.style.display = heightUnit === "m" ? "" : "none";
-  if (cmWrap) cmWrap.style.display = heightUnit === "cm" ? "" : "none";
-  if (imperialWrap) imperialWrap.style.display = heightUnit === "ftin" ? "" : "none";
-
-  const newWeight = document.getElementById("newWeight");
-  if (newWeight) newWeight.step = weightUnit === "lb" ? "0.2" : "0.1";
-
-  document.querySelectorAll(".row-weight").forEach(input => {
-    input.step = weightUnit === "lb" ? "0.2" : "0.1";
-  });
-}
-
-function convertVisibleWeightFields(fromUnit, toUnit) {
-  if (fromUnit === toUnit) return;
-
-  const yMinInput = document.getElementById("yMinInput");
-  const yMaxInput = document.getElementById("yMaxInput");
-
-  const yMinShown = Number(yMinInput.value);
-  const yMaxShown = Number(yMaxInput.value);
-
-  if (Number.isFinite(yMinShown)) {
-    const yMinKg = weightDisplayToKg(yMinShown, fromUnit);
-    yMinInput.value = weightKgToDisplay(yMinKg, toUnit).toFixed(1);
-  }
-
-  if (Number.isFinite(yMaxShown)) {
-    const yMaxKg = weightDisplayToKg(yMaxShown, fromUnit);
-    yMaxInput.value = weightKgToDisplay(yMaxKg, toUnit).toFixed(1);
-  }
-
-  renderTable(parseCsv(csvBox.value || EMPTY_CSV));
-  updateUnitLabels();
-}
-
-function convertVisibleHeightFields() {
-  putHeightIntoInputs(heightDisplayToM());
-  updateUnitLabels();
-}
-
-function clearErrors() {
-  document.querySelectorAll(".error-field").forEach(el => el.classList.remove("error-field"));
-  document.querySelectorAll(".error-zone").forEach(el => el.classList.remove("error-zone", "shake-error"));
-  statusBox.classList.remove("error");
-}
-
-function markError(target, message) {
-  clearErrors();
-  statusBox.textContent = message;
-  statusBox.classList.add("error");
-
-  const el = typeof target === "string" ? document.getElementById(target) : target;
-  if (el) {
-    const className = el.classList.contains("date-click-zone") ? "error-zone" : "error-field";
-    el.classList.add(className, "shake-error");
-    setTimeout(() => el.classList.remove("shake-error"), 260);
-
-    if (typeof el.focus === "function") {
-      el.focus();
-    } else {
-      const input = el.querySelector("input, textarea, select");
-      if (input) input.focus();
-    }
-  }
-}
-
-function clearErrorOnInput(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.addEventListener("input", clearErrors);
-  el.addEventListener("change", clearErrors);
-}
-
-function setUserBoxTitle(title) {
-  const titleEl = document.getElementById("userBoxTitle");
-  if (!titleEl) return;
-  titleEl.textContent = title ? title : "User";
-}
-
-function collapseUserBox() {
-  const userDetails = document.getElementById("userDetails");
-  if (userDetails) userDetails.open = false;
-}
-
-function expandUserBox() {
-  const userDetails = document.getElementById("userDetails");
-  if (userDetails) userDetails.open = true;
-}
-
-function normaliseTitle(title) {
-  return String(title || "").trim().replace(/\s+/g, " ");
-}
-
-function loadFiles() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_FILES_KEY));
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
-  } catch (e) {}
-  return {};
-}
-
-function saveFiles(files) {
-  localStorage.setItem(STORAGE_FILES_KEY, JSON.stringify(files));
-}
-
-function makeDefaultFile(title, csv = EMPTY_CSV) {
-  const settings = clone(DEFAULT_SETTINGS);
-  settings.title = `${title} (Updated to [latest date])`;
-  settings.theme = document.getElementById("themeToggle").checked ? "light" : "dark";
-  settings.colours = clone(THEME_PALETTES[settings.theme]);
-  settings.doseColours = {};
-  settings.yAutoRangedOnce = false;
-  return {
-    csv,
-    settings,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
-}
-
-function ensureExampleUser(files) {
-  const needsExampleRepair =
-    !files[EXAMPLE_USER_TITLE] ||
-    !files[EXAMPLE_USER_TITLE].csv ||
-    files[EXAMPLE_USER_TITLE].csv.includes("\\n");
-
-  if (needsExampleRepair) {
-    const example = makeDefaultFile(EXAMPLE_USER_TITLE, EXAMPLE_USER_CSV);
-    example.settings.title = `${EXAMPLE_USER_TITLE} (Example data)`;
-    example.settings.yMin = 68;
-    example.settings.yMax = 94;
-    example.settings.yAutoRangedOnce = true;
-    files[EXAMPLE_USER_TITLE] = example;
-    saveFiles(files);
-  }
-  return files;
-}
-
-function autoRangeForFirstWeightIfNeeded(row) {
-  if (!activeFileTitle || !row || row.weight === null) return;
-
-  const files = loadFiles();
-  const file = files[activeFileTitle];
-  if (!file || activeFileTitle === EXAMPLE_USER_TITLE) return;
-
-  const settings = mergeSettings(file.settings || DEFAULT_SETTINGS);
-  if (settings.yAutoRangedOnce) return;
-
-  const allRows = parseCsv(csvBox.value);
-  const weightRows = allRows.filter(r => r.weight !== null);
-  if (weightRows.length !== 1) return;
-
-  const weight = Number(row.weight);
-  if (!Number.isFinite(weight)) return;
-
-  const padding = Math.max(5, Math.ceil(weight * 0.08));
-  const yMin = Math.max(0, Math.floor(weight - padding));
-  const yMax = Math.ceil(weight + padding);
-
-  const weightUnit = weightUnitFromInput();
-  document.getElementById("yMinInput").value = weightKgToDisplay(yMin, weightUnit).toFixed(1);
-  document.getElementById("yMaxInput").value = weightKgToDisplay(yMax, weightUnit).toFixed(1);
-
-  settings.yMin = yMin;
-  settings.yMax = yMax;
-  settings.yAutoRangedOnce = true;
-
-  file.settings = settings;
-  file.updatedAt = new Date().toISOString();
-  files[activeFileTitle] = file;
-  saveFiles(files);
-
-  activeFileStatus.textContent = `Y axis auto-set from first weight: ${weightKgToDisplay(yMin, weightUnit).toFixed(1)}–${weightKgToDisplay(yMax, weightUnit).toFixed(1)} ${unitWeightLabel(weightUnit)}.`;
-}
-
-
-function fileExistsCaseInsensitive(files, title, ignoreTitle = "") {
-  const wanted = title.toLowerCase();
-  const ignore = ignoreTitle.toLowerCase();
-  return Object.keys(files).some(existing => {
-    const ex = existing.toLowerCase();
-    return ex === wanted && ex !== ignore;
-  });
-}
-
-function requireActiveFile() {
-  if (!activeFileTitle) {
-    markError("newFileTitle", "Create a user title first.");
-    activeFileStatus.textContent = "No active file. Enter a title and click Start new user.";
-    return false;
-  }
-  return true;
-}
-
-function updateFileSelector() {
-  const files = ensureExampleUser(loadFiles());
-  const titles = Object.keys(files).sort((a, b) => a.localeCompare(b));
-  fileSelect.innerHTML = "";
-
-  if (titles.length === 0) {
-    const option = document.createElement("option");
-    option.value = "";
-    option.textContent = "No saved users yet";
-    fileSelect.appendChild(option);
-    fileSelect.disabled = true;
-    document.getElementById("openFileBtn").disabled = true;
-    document.getElementById("renameFileBtn").disabled = true;
-    document.getElementById("deleteFileBtn").disabled = true;
-  } else {
-    fileSelect.disabled = false;
-    document.getElementById("openFileBtn").disabled = false;
-    document.getElementById("renameFileBtn").disabled = !activeFileTitle;
-    document.getElementById("deleteFileBtn").disabled = !activeFileTitle;
-
-    for (const title of titles) {
-      const option = document.createElement("option");
-      option.value = title;
-      option.textContent = title;
-      if (title === activeFileTitle) option.selected = true;
-      fileSelect.appendChild(option);
-    }
-  }
-}
-
-function setMainEnabled(enabled) {
-  mainApp.querySelectorAll("input, textarea, button, select").forEach(el => {
-    if (el.id === "importCsvFile") return;
-    el.disabled = !enabled;
-  });
-  mainApp.style.opacity = enabled ? "1" : "0.45";
-}
-
-function applyPageTheme(theme) {
-  const mode = theme === "light" ? "light" : "dark";
-  document.documentElement.setAttribute("data-theme", mode);
-  document.getElementById("themeToggle").checked = mode === "light";
-  document.getElementById("themeLabel").textContent = mode === "light" ? "Light" : "Dark";
-}
-
-function applyThemeToGraphColours(theme) {
-  const palette = THEME_PALETTES[theme === "light" ? "light" : "dark"];
-  document.getElementById("overallBgColour").value = palette.overallBg;
-  document.getElementById("plotBgColour").value = palette.plotBg;
-  document.getElementById("textColour").value = palette.text;
-  document.getElementById("gridColour").value = palette.grid;
-  document.getElementById("weightColour").value = palette.weight;
-  document.getElementById("bmiUnderColour").value = palette.bmiUnder;
-  document.getElementById("bmiHealthyColour").value = palette.bmiHealthy;
-  document.getElementById("bmiOverColour").value = palette.bmiOver;
-  document.getElementById("bmiObese1Colour").value = palette.bmiObese1;
-  document.getElementById("bmiObese2Colour").value = palette.bmiObese2;
-  document.getElementById("bmiObese3Colour").value = palette.bmiObese3;
-
-  const rows = parseCsv(csvBox.value || EMPTY_CSV);
-  ensureDoseColours(rows, true);
-  renderDoseColourControls(rows);
-}
-
-function saveCurrentFileFromScreen() {
-  if (!activeFileTitle) return;
-  const files = loadFiles();
-  if (!files[activeFileTitle]) return;
-
-  files[activeFileTitle].csv = csvBox.value || EMPTY_CSV;
-  files[activeFileTitle].settings = getSettingsFromInputs();
-  files[activeFileTitle].updatedAt = new Date().toISOString();
-
-  saveFiles(files);
-  localStorage.setItem(STORAGE_ACTIVE_FILE_KEY, activeFileTitle);
-}
-
-function loadFileIntoScreen(title) {
-  const files = loadFiles();
-  if (!files[title]) return false;
-
-  activeFileTitle = title;
-  localStorage.setItem(STORAGE_ACTIVE_FILE_KEY, activeFileTitle);
-
-  const file = files[title];
-  const settings = mergeSettings(file.settings || DEFAULT_SETTINGS);
-
-  csvBox.value = file.csv || EMPTY_CSV;
-  setDownloadDateDefaults(parseCsv(csvBox.value));
-  putSettingsIntoInputs(settings);
-  applyPageTheme(settings.theme);
-
-  updateFileSelector();
-  setMainEnabled(true);
-  setUserBoxTitle(activeFileTitle);
-  collapseUserBox();
-  activeFileStatus.textContent = `Active user: ${activeFileTitle}`;
-  drawChart();
-  return true;
-}
-
-function createNewFile() {
-  stopChoon();
-  const title = normaliseTitle(document.getElementById("newFileTitle").value);
-  const files = loadFiles();
-
-  if (!title) {
-    activeFileStatus.textContent = "Enter a title for the new user first.";
-    markError("newFileTitle", "Enter a title for the new user first.");
-    return;
-  }
-
-  if (fileExistsCaseInsensitive(files, title)) {
-    activeFileStatus.textContent = `A file called "${title}" already exists. Use a different title.`;
-    markError("newFileTitle", `A file called "${title}" already exists. Use a different title.`);
-    return;
-  }
-
-  clearErrors();
-  saveCurrentFileFromScreen();
-
-  files[title] = makeDefaultFile(title);
-  saveFiles(files);
-
-  document.getElementById("newFileTitle").value = "";
-  loadFileIntoScreen(title);
-  activeFileStatus.textContent = `Created and opened: ${title}`;
-  document.getElementById("newDate").focus();
-}
-
-function openSelectedFile() {
-  stopChoon();
-  const title = fileSelect.value;
-  if (!title) return;
-
-  saveCurrentFileFromScreen();
-  loadFileIntoScreen(title);
-}
-
-function renameCurrentFile() {
-  if (!requireActiveFile()) return;
-
-  const newTitle = normaliseTitle(document.getElementById("newFileTitle").value);
-  if (!newTitle) {
-    activeFileStatus.textContent = "Type the new title in the New user title box, then click Rename current user.";
-    markError("newFileTitle", "Type the new title in the New user title box, then click Rename current user.");
-    return;
-  }
-
-  const files = loadFiles();
-  if (!files[activeFileTitle]) return;
-
-  if (fileExistsCaseInsensitive(files, newTitle, activeFileTitle)) {
-    activeFileStatus.textContent = `A file called "${newTitle}" already exists. Use a different title.`;
-    markError("newFileTitle", `A file called "${newTitle}" already exists. Use a different title.`);
-    return;
-  }
-
-  saveCurrentFileFromScreen();
-
-  const refreshed = loadFiles();
-  refreshed[newTitle] = refreshed[activeFileTitle];
-  delete refreshed[activeFileTitle];
-  refreshed[newTitle].updatedAt = new Date().toISOString();
-
-  saveFiles(refreshed);
-  activeFileTitle = newTitle;
-  localStorage.setItem(STORAGE_ACTIVE_FILE_KEY, activeFileTitle);
-
-  document.getElementById("newFileTitle").value = "";
-  loadFileIntoScreen(activeFileTitle);
-  activeFileStatus.textContent = `Renamed current user to: ${activeFileTitle}`;
-}
-
-function deleteCurrentFile() {
-  stopChoon();
-  if (!requireActiveFile()) return;
-
-  const confirmed = confirm(`Delete the current file "${activeFileTitle}"? This cannot be undone unless you have exported a CSV.`);
-  if (!confirmed) return;
-
-  const files = loadFiles();
-  delete files[activeFileTitle];
-  saveFiles(files);
-
-  activeFileTitle = "";
-  localStorage.removeItem(STORAGE_ACTIVE_FILE_KEY);
-
-  const titles = Object.keys(files).sort((a, b) => a.localeCompare(b));
-  if (titles.length > 0) {
-    loadFileIntoScreen(titles[0]);
-  } else {
-    initialiseNoFileState();
-  }
-}
-
-function initialiseNoFileState() {
-  activeFileTitle = "";
-  csvBox.value = EMPTY_CSV;
-  const settings = clone(DEFAULT_SETTINGS);
-  const currentTheme = document.getElementById("themeToggle").checked ? "light" : "light";
-  settings.theme = currentTheme;
-  settings.colours = clone(THEME_PALETTES[currentTheme]);
-  settings.doseColours = {};
-  settings.showDoses = true;
-  settings.showNotes = false;
-  putSettingsIntoInputs(settings);
-  applyPageTheme(settings.theme);
-  updateFileSelector();
-  setMainEnabled(false);
-  setUserBoxTitle("User");
-  expandUserBox();
-  activeFileStatus.textContent = "No active file. Enter a title and click Start new user.";
-  renderDoseColourControls([]);
-  drawEmptyChart(getSettingsFromInputs(), "Create a user title to begin");
-}
-
-function mergeSettings(saved) {
-  const settings = clone(DEFAULT_SETTINGS);
-  if (saved) {
-    Object.assign(settings, saved);
-    settings.theme = saved.theme === "light" ? "light" : "dark";
-    settings.weightUnit = saved.weightUnit === "lb" || saved.unitSystem === "imperial" ? "lb" : "kg";
-    settings.heightUnit = saved.heightUnit === "cm" || saved.heightUnit === "ftin"
-      ? saved.heightUnit
-      : (saved.unitSystem === "imperial" ? "ftin" : "m");
-    settings.colours = Object.assign({}, THEME_PALETTES[settings.theme], saved.colours || {});
-    settings.doseColours = Object.assign({}, saved.doseColours || {});
-    settings.showDoses = saved.showDoses !== false;
-    settings.showNotes = !!saved.showNotes;
-    settings.yAutoRangedOnce = !!saved.yAutoRangedOnce;
-  }
-  return settings;
-}
-
-function parseDateOnly(s) {
-  if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s.trim())) return null;
-  const [y, m, d] = s.trim().split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
-
-function dateKey(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
-function doseKey(dose) {
-  return String(Number(dose));
-}
-
-function formatDose(dose) {
-  const n = Number(dose);
-  return Number.isInteger(n) ? String(n) : String(n);
-}
-
-
-function parseCsvLine(line) {
-  const result = [];
-  let current = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    const next = line[i + 1];
-
-    if (char === '"' && inQuotes && next === '"') {
-      current += '"';
-      i++;
-    } else if (char === '"') {
-      inQuotes = !inQuotes;
-    } else if (char === "," && !inQuotes) {
-      result.push(current);
-      current = "";
-    } else {
-      current += char;
-    }
-  }
-
-  result.push(current);
-  return result;
-}
-
-function csvEscape(value) {
-  const s = String(value ?? "");
-  if (/[",\n\r]/.test(s)) {
-    return '"' + s.replace(/"/g, '""') + '"';
-  }
-  return s;
-}
-
-function parseCsv(text) {
-  const lines = text.replace(/\r/g, "").split("\n").map(l => l.trim()).filter(Boolean);
-  const rows = [];
-  for (const line of lines) {
-    if (line.toLowerCase().startsWith("date,")) continue;
-    const parts = parseCsvLine(line);
-    const date = parseDateOnly(parts[0] || "");
-    if (!date) continue;
-
-    const wRaw = (parts[1] || "").trim();
-    const dRaw = (parts[2] || "").trim();
-    const note = (parts.slice(3).join(",") || "").trim();
-
-    const weight = wRaw === "" ? null : Number(wRaw);
-    const dose = dRaw === "" ? null : Number(dRaw);
-
-    rows.push({
-      date,
-      dateString: dateKey(date),
-      weight: Number.isFinite(weight) ? weight : null,
-      dose: Number.isFinite(dose) ? dose : null,
-      note
-    });
-  }
-
-  rows.sort((a, b) => a.date - b.date);
-  return rows;
-}
-
-function toCsv(rows) {
-  return "Date,Weight kg,Dose mg,Note\n" + rows.map(r => {
-    const w = r.weight === null ? "" : Number(r.weight).toFixed(1);
-    const d = r.dose === null ? "" : String(r.dose);
-    const note = r.note || "";
-    return [r.dateString, w, d, note].map(csvEscape).join(",");
-  }).join("\n");
-}
-
-function getDetectedDoses(rows = parseCsv(csvBox.value || EMPTY_CSV)) {
-  return Array.from(new Set(rows.filter(r => r.dose !== null).map(r => Number(r.dose))))
-    .filter(Number.isFinite)
-    .sort((a, b) => a - b);
-}
-
-function hexToRgb(hex) {
-  const h = String(hex).replace("#", "");
-  return {
-    r: parseInt(h.slice(0, 2), 16),
-    g: parseInt(h.slice(2, 4), 16),
-    b: parseInt(h.slice(4, 6), 16)
-  };
-}
-
-function rgbToHex(r, g, b) {
-  return "#" + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("");
-}
-
-function interpolateHex(a, b, t) {
-  const ca = hexToRgb(a);
-  const cb = hexToRgb(b);
-  return rgbToHex(
-    ca.r + (cb.r - ca.r) * t,
-    ca.g + (cb.g - ca.g) * t,
-    ca.b + (cb.b - ca.b) * t
-  );
-}
-
-function automaticDoseColour(dose, theme) {
-  const n = Number(dose);
-  const anchors = theme === "light"
-    ? [
-        [0, "#006a7a"],
-        [2.5, STANDARD_DOSE_COLOURS_LIGHT["2.5"]],
-        [5, STANDARD_DOSE_COLOURS_LIGHT["5"]],
-        [7.5, STANDARD_DOSE_COLOURS_LIGHT["7.5"]],
-        [10, "#c85a00"],
-        [15, "#b80000"]
-      ]
-    : [
-        [0, "#00bfff"],
-        [2.5, STANDARD_DOSE_COLOURS_DARK["2.5"]],
-        [5, STANDARD_DOSE_COLOURS_DARK["5"]],
-        [7.5, STANDARD_DOSE_COLOURS_DARK["7.5"]],
-        [10, "#ff7a00"],
-        [15, "#ff3333"]
-      ];
-
-  for (const [anchorDose, colour] of anchors) {
-    if (Math.abs(n - anchorDose) < 0.0001) return colour;
-  }
-
-  if (n <= anchors[0][0]) return anchors[0][1];
-  if (n >= anchors[anchors.length - 1][0]) return anchors[anchors.length - 1][1];
-
-  for (let i = 0; i < anchors.length - 1; i++) {
-    const [d1, c1] = anchors[i];
-    const [d2, c2] = anchors[i + 1];
-    if (n >= d1 && n <= d2) {
-      return interpolateHex(c1, c2, (n - d1) / (d2 - d1));
-    }
-  }
-
-  return theme === "light" ? "#555555" : "#eeeeee";
-}
-
-function getDoseColoursFromInputs() {
-  const doseColours = {};
-  doseColourGrid.querySelectorAll("input[data-dose-key]").forEach(input => {
-    doseColours[input.dataset.doseKey] = input.value;
-  });
-  return doseColours;
-}
-
-function ensureDoseColours(rows, forceThemeDefaults = false) {
-  const doses = getDetectedDoses(rows);
-  const theme = document.getElementById("themeToggle").checked ? "light" : "dark";
-  const currentSettings = getSettingsFromInputsWithoutDoseRead();
-  const current = forceThemeDefaults ? {} : Object.assign({}, currentSettings.doseColours || {}, getDoseColoursFromInputs());
-
-  doses.forEach(dose => {
-    const key = doseKey(dose);
-    if (!current[key]) {
-      current[key] = automaticDoseColour(dose, theme);
-    }
-  });
-
-  return current;
-}
-
-function renderDoseColourControls(rows) {
-  const doses = getDetectedDoses(rows);
-  const doseColours = ensureDoseColours(rows);
-  doseColourGrid.innerHTML = "";
-
-  if (doses.length === 0) {
-    doseColourGrid.innerHTML = '<span class="small">No dose values detected yet.</span>';
-    doseLegend.innerHTML = "";
-    return;
-  }
-
-  doses.forEach(dose => {
-    const key = doseKey(dose);
-    const item = document.createElement("div");
-    item.className = "dose-colour-item";
-
-    const label = document.createElement("label");
-    label.textContent = `${formatDose(dose)} dose`;
-
-    const input = document.createElement("input");
-    input.type = "color";
-    input.value = doseColours[key];
-    input.dataset.doseKey = key;
-    input.addEventListener("input", () => {
-      drawChart(true);
-      renderDoseLegend(doses, getDoseColoursFromInputs());
-      saveCurrentFileFromScreen();
-    });
-
-    item.appendChild(label);
-    item.appendChild(input);
-    doseColourGrid.appendChild(item);
-  });
-
-  renderDoseLegend(doses, doseColours);
-}
-
-function renderDoseLegend(doses, doseColours) {
-  doseLegend.innerHTML = "";
-  doses.forEach(dose => {
-    const key = doseKey(dose);
-    const span = document.createElement("span");
-    span.innerHTML = `<span class="swatch" style="border-color:${doseColours[key]};"></span>${formatDose(dose)} dose`;
-    doseLegend.appendChild(span);
-  });
-}
-
-function getSettingsFromInputsWithoutDoseRead() {
-  const theme = document.getElementById("themeToggle").checked ? "light" : "dark";
-  const weightUnit = weightUnitFromInput();
-  const heightUnit = heightUnitFromInput();
-
-  const yMinShown = Number(document.getElementById("yMinInput").value);
-  const yMaxShown = Number(document.getElementById("yMaxInput").value);
-  const heightM = heightDisplayToM(heightUnit);
-
-  const settings = {
-    title: document.getElementById("titleInput").value.trim() || DEFAULT_SETTINGS.title,
-    yMin: weightDisplayToKg(yMinShown, weightUnit),
-    yMax: weightDisplayToKg(yMaxShown, weightUnit),
-    heightM,
-    weightUnit,
-    heightUnit,
-    theme,
-    colours: {
-      overallBg: document.getElementById("overallBgColour").value,
-      plotBg: document.getElementById("plotBgColour").value,
-      text: document.getElementById("textColour").value,
-      grid: document.getElementById("gridColour").value,
-      weight: document.getElementById("weightColour").value,
-      bmiUnder: document.getElementById("bmiUnderColour").value,
-      bmiHealthy: document.getElementById("bmiHealthyColour").value,
-      bmiOver: document.getElementById("bmiOverColour").value,
-      bmiObese1: document.getElementById("bmiObese1Colour").value,
-      bmiObese2: document.getElementById("bmiObese2Colour").value,
-      bmiObese3: document.getElementById("bmiObese3Colour").value
-    },
-    doseColours: {},
-    showDoses: document.getElementById("showDosesInput") ? document.getElementById("showDosesInput").checked : true,
-    showNotes: document.getElementById("showNotesInput") ? document.getElementById("showNotesInput").checked : false
-  };
-
-  if (!Number.isFinite(yMinShown)) {
-    markError("yMinInput", "Y-axis minimum must be a number.");
-    settings.yMin = DEFAULT_SETTINGS.yMin;
-  }
-  if (!Number.isFinite(yMaxShown)) {
-    markError("yMaxInput", "Y-axis maximum must be a number.");
-    settings.yMax = DEFAULT_SETTINGS.yMax;
-  }
-  if (settings.yMax <= settings.yMin) {
-    markError("yMaxInput", "Y-axis maximum must be higher than the minimum.");
-    document.getElementById("yMinInput").classList.add("error-field");
-    settings.yMin = DEFAULT_SETTINGS.yMin;
-    settings.yMax = DEFAULT_SETTINGS.yMax;
-  }
-  if (!Number.isFinite(settings.heightM) || settings.heightM <= 0) {
-    markError(heightUnit === "ftin" ? "heightFeetInput" : (heightUnit === "cm" ? "heightCmInput" : "heightInput"), "Height must be a number above zero.");
-    settings.heightM = DEFAULT_SETTINGS.heightM;
-  }
-
-  return settings;
-}
-
-function getSettingsFromInputs() {
-  const settings = getSettingsFromInputsWithoutDoseRead();
-  const rows = parseCsv(csvBox.value || EMPTY_CSV);
-  const autoDoseColours = ensureDoseColours(rows);
-  settings.doseColours = Object.assign({}, autoDoseColours, getDoseColoursFromInputs());
-  return settings;
-}
-
-function putSettingsIntoInputs(settings) {
-  const weightUnit = settings.weightUnit === "lb" || settings.weightUnit === "imperial" ? "lb" : "kg";
-  const heightUnit = settings.heightUnit === "cm" || settings.heightUnit === "ftin"
-    ? settings.heightUnit
-    : (settings.weightUnit === "imperial" ? "ftin" : "m");
-
-  const weightSelect = document.getElementById("weightUnitInput");
-  if (weightSelect) {
-    weightSelect.value = weightUnit;
-    weightSelect.dataset.currentWeightUnit = weightUnit;
-  }
-
-  const heightSelect = document.getElementById("heightUnitInput");
-  if (heightSelect) {
-    heightSelect.value = heightUnit;
-    heightSelect.dataset.currentHeightUnit = heightUnit;
-  }
-
-  document.getElementById("titleInput").value = settings.title;
-  document.getElementById("yMinInput").value = weightKgToDisplay(settings.yMin, weightUnit).toFixed(1);
-  document.getElementById("yMaxInput").value = weightKgToDisplay(settings.yMax, weightUnit).toFixed(1);
-  putHeightIntoInputs(settings.heightM);
-
-  updateUnitLabels();
-  if (document.getElementById("showDosesInput")) document.getElementById("showDosesInput").checked = settings.showDoses !== false;
-  if (document.getElementById("showNotesInput")) document.getElementById("showNotesInput").checked = !!settings.showNotes;
-
-  document.getElementById("overallBgColour").value = settings.colours.overallBg;
-  document.getElementById("plotBgColour").value = settings.colours.plotBg;
-  document.getElementById("textColour").value = settings.colours.text;
-  document.getElementById("gridColour").value = settings.colours.grid;
-  document.getElementById("weightColour").value = settings.colours.weight;
-  document.getElementById("bmiUnderColour").value = settings.colours.bmiUnder;
-  document.getElementById("bmiHealthyColour").value = settings.colours.bmiHealthy;
-  document.getElementById("bmiOverColour").value = settings.colours.bmiOver;
-  document.getElementById("bmiObese1Colour").value = settings.colours.bmiObese1;
-  document.getElementById("bmiObese2Colour").value = settings.colours.bmiObese2;
-  document.getElementById("bmiObese3Colour").value = settings.colours.bmiObese3;
-
-  applyPageTheme(settings.theme || "dark");
-  renderDoseColourControls(parseCsv(csvBox.value || EMPTY_CSV));
-}
-
-function drawDashedLine(ctx, x, y1, y2, colour, width, dash) {
-  ctx.save();
-  ctx.strokeStyle = colour;
-  ctx.lineWidth = width;
-  ctx.setLineDash(dash);
-  ctx.beginPath();
-  ctx.moveTo(x, y1);
-  ctx.lineTo(x, y2);
-  ctx.stroke();
-  ctx.restore();
-}
-
-function doseLineDash(dose) {
-  const n = Number(dose);
-  if (Math.abs(n - 2.5) < 0.0001) return [4, 12];
-  if (Math.abs(n - 5) < 0.0001) return [24, 14];
-  if (Math.abs(n - 7.5) < 0.0001) return [];
-  return [12, 10];
-}
-
-function doseLineWidth(dose) {
-  const n = Number(dose);
-  if (Math.abs(n - 2.5) < 0.0001) return 7.0;
-  if (Math.abs(n - 5) < 0.0001) return 8.0;
-  if (Math.abs(n - 7.5) < 0.0001) return 9.5;
-  return 7.0;
-}
-
-function chooseYStep(range) {
-  if (range <= 8) return 1;
-  if (range <= 16) return 2;
-  if (range <= 40) return 5;
-  return 10;
-}
-
-function formatTick(n) {
-  return Math.abs(n - Math.round(n)) < 0.0001 ? String(Math.round(n)) : n.toFixed(1);
-}
-
-function drawEmptyChart(settings, message = "Add your first reading to begin") {
-  if (statsPanel) {
-    statsPanel.innerHTML = `<div class="stat-note">Add at least two weight readings to show weight-change stats.</div>`;
-  }
-  const W = canvas.width;
-  const H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = settings.colours.overallBg;
-  ctx.fillRect(0, 0, W, H);
-
-  const margin = { left: 120, right: 130, top: 90, bottom: 180 };
-  const plotX = margin.left;
-  const plotY = margin.top;
-  const plotW = W - margin.left - margin.right;
-  const plotH = H - margin.top - margin.bottom;
-
-  ctx.fillStyle = settings.colours.plotBg;
-  ctx.fillRect(plotX, plotY, plotW, plotH);
-
-  ctx.save();
-  ctx.strokeStyle = settings.colours.text;
-  ctx.globalAlpha = 0.7;
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(plotX, plotY, plotW, plotH);
-  ctx.restore();
-
-  ctx.save();
-  ctx.fillStyle = settings.colours.text;
-  ctx.font = "48px system-ui, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "top";
-  ctx.fillText(settings.title.replaceAll("[latest date]", "no data yet"), W / 2, 20);
-  ctx.font = "34px system-ui, sans-serif";
-  ctx.textBaseline = "middle";
-  ctx.fillText(message, W / 2, plotY + plotH / 2);
-  ctx.restore();
-}
-
-function drawChart(skipTableRender = false) {
-  if (!activeFileTitle) {
-    drawEmptyChart(getSettingsFromInputs(), "Create a user title to begin");
-    return;
-  }
-
-  const rowsAll = parseCsv(csvBox.value);
-  const range = chartRangeOverride;
-  const rows = range
-    ? rowsAll.filter(r => r.date >= range.start && r.date <= range.end)
-    : rowsAll;
-  const settings = getSettingsFromInputs();
-  applyPageTheme(settings.theme);
-  if (!range) saveCurrentFileFromScreen();
-  renderDoseColourControls(rowsAll);
-  if (!settings.showDoses && doseLegend) doseLegend.innerHTML = "";
-
-  const weightRows = rows.filter(r => r.weight !== null);
-  const doseRows = settings.showDoses ? rows.filter(r => r.dose !== null) : [];
-
-  if (weightRows.length === 0 || rows.length === 0) {
-    drawEmptyChart(settings);
-    statusBox.textContent = range
-      ? `No weight readings in selected date range.`
-      : `Saved under "${activeFileTitle}". No data yet. Add a date and weight to begin.`;
-    renderStats(rows, settings);
-    if (!skipTableRender) renderTable(rows);
-    return;
-  }
-
-  const W = canvas.width;
-  const H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = settings.colours.overallBg;
-  ctx.fillRect(0, 0, W, H);
-
-  const start = rows[0].date;
-  const latest = rows.reduce((max, r) => r.date > max ? r.date : max, rows[0].date);
-  const latestWeight = weightRows[weightRows.length - 1];
-
-  const yMin = settings.yMin;
-  const yMax = settings.yMax;
-  const heightM = settings.heightM;
-
-  const bmiThresholds = [
-    { bmi: 18.5, label: "BMI 18.5", weight: 18.5 * heightM * heightM },
-    { bmi: 25, label: "BMI 25", weight: 25 * heightM * heightM },
-    { bmi: 30, label: "BMI 30", weight: 30 * heightM * heightM },
-    { bmi: 35, label: "BMI 35", weight: 35 * heightM * heightM },
-    { bmi: 40, label: "BMI 40", weight: 40 * heightM * heightM }
-  ];
-
-  const margin = { left: 120, right: 150, top: 90, bottom: 180 };
-  const plotX = margin.left;
-  const plotY = margin.top;
-  const plotW = W - margin.left - margin.right;
-  const plotH = H - margin.top - margin.bottom;
-
-  const xScale = d => {
-    const t0 = start.getTime();
-    const t1 = latest.getTime();
-    if (t1 === t0) return plotX + plotW / 2;
-    return plotX + ((d.getTime() - t0) / (t1 - t0)) * plotW;
-  };
-
-  const yScale = kg => plotY + ((yMax - kg) / (yMax - yMin)) * plotH;
-
-  ctx.fillStyle = settings.colours.plotBg;
-  ctx.fillRect(plotX, plotY, plotW, plotH);
-
-  function band(yLow, yHigh, colour) {
-    const low = Math.max(yLow, yMin);
-    const high = Math.min(yHigh, yMax);
-    if (high <= low) return;
-    ctx.fillStyle = colour;
-    ctx.globalAlpha = settings.theme === "light" ? 0.9 : 0.75;
-    ctx.fillRect(plotX, yScale(high), plotW, yScale(low) - yScale(high));
-    ctx.globalAlpha = 1;
-  }
-
-  const bmi18_5 = 18.5 * heightM * heightM;
-  const bmi25 = 25 * heightM * heightM;
-  const bmi30 = 30 * heightM * heightM;
-  const bmi35 = 35 * heightM * heightM;
-  const bmi40 = 40 * heightM * heightM;
-
-  band(yMin, Math.min(bmi18_5, yMax), settings.colours.bmiUnder);
-  band(Math.max(bmi18_5, yMin), Math.min(bmi25, yMax), settings.colours.bmiHealthy);
-  band(Math.max(bmi25, yMin), Math.min(bmi30, yMax), settings.colours.bmiOver);
-  band(Math.max(bmi30, yMin), Math.min(bmi35, yMax), settings.colours.bmiObese1);
-  band(Math.max(bmi35, yMin), Math.min(bmi40, yMax), settings.colours.bmiObese2);
-  band(Math.max(bmi40, yMin), yMax, settings.colours.bmiObese3);
-
-  ctx.save();
-  ctx.strokeStyle = settings.colours.grid;
-  ctx.globalAlpha = settings.theme === "light" ? 0.35 : 0.25;
-  ctx.lineWidth = 1.4;
-
-  const displayYMin = weightKgToDisplay(yMin, settings.weightUnit);
-  const displayYMax = weightKgToDisplay(yMax, settings.weightUnit);
-  const yDisplayStep = chooseYStep(displayYMax - displayYMin);
-  const firstDisplayTick = Math.ceil(displayYMin / yDisplayStep) * yDisplayStep;
-  for (let shown = firstDisplayTick; shown <= displayYMax + 0.0001; shown += yDisplayStep) {
-    const kg = weightDisplayToKg(shown, settings.weightUnit);
-    const y = yScale(kg);
-    ctx.beginPath();
-    ctx.moveTo(plotX, y);
-    ctx.lineTo(plotX + plotW, y);
-    ctx.stroke();
-  }
-
-  const tickDate = new Date(start.getFullYear(), start.getMonth() + 1, 1);
-  while (tickDate <= latest) {
-    const x = xScale(tickDate);
-    ctx.beginPath();
-    ctx.moveTo(x, plotY);
-    ctx.lineTo(x, plotY + plotH);
-    ctx.stroke();
-    tickDate.setMonth(tickDate.getMonth() + 1);
-  }
-  ctx.restore();
-
-  for (const r of doseRows) {
-    const x = xScale(r.date);
-    const key = doseKey(r.dose);
-    const colour = settings.doseColours[key] || automaticDoseColour(r.dose, settings.theme);
-    drawDashedLine(ctx, x, plotY, plotY + plotH, colour, doseLineWidth(r.dose), doseLineDash(r.dose));
-  }
-
-  ctx.save();
-  ctx.strokeStyle = settings.colours.text;
-  ctx.globalAlpha = 0.7;
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(plotX, plotY, plotW, plotH);
-  ctx.restore();
-
-  ctx.save();
-  ctx.fillStyle = settings.colours.text;
-  ctx.font = "28px system-ui, sans-serif";
-  ctx.textAlign = "right";
-  ctx.textBaseline = "middle";
-  for (let shown = firstDisplayTick; shown <= displayYMax + 0.0001; shown += yDisplayStep) {
-    const kg = weightDisplayToKg(shown, settings.weightUnit);
-    ctx.fillText(formatTick(shown), plotX - 20, yScale(kg));
-  }
-  ctx.restore();
-
-  ctx.save();
-  ctx.fillStyle = settings.colours.text;
-  ctx.font = "24px system-ui, sans-serif";
-  ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
-  for (const threshold of bmiThresholds) {
-    if (threshold.weight >= yMin && threshold.weight <= yMax) {
-      ctx.fillText(threshold.label, plotX + plotW + 18, yScale(threshold.weight));
-    }
-  }
-  ctx.restore();
-
-  ctx.save();
-  ctx.fillStyle = settings.colours.text;
-  ctx.font = "26px system-ui, sans-serif";
-  ctx.textAlign = "right";
-  ctx.textBaseline = "middle";
-  const labelDate = new Date(start.getFullYear(), start.getMonth(), 1);
-  while (labelDate <= latest) {
-    if (labelDate >= start) {
-      const x = xScale(labelDate);
-      ctx.save();
-      ctx.translate(x, plotY + plotH + 42);
-      ctx.rotate(-Math.PI / 4);
-      ctx.fillText(dateKey(labelDate), 0, 0);
-      ctx.restore();
-    }
-    labelDate.setMonth(labelDate.getMonth() + 1);
-  }
-  ctx.restore();
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(plotX, plotY, plotW, plotH);
-  ctx.clip();
-
-  ctx.strokeStyle = settings.colours.weight;
-  ctx.lineWidth = 4.8;
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  weightRows.forEach((r, i) => {
-    const x = xScale(r.date);
-    const y = yScale(r.weight);
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.stroke();
-
-  ctx.fillStyle = settings.colours.weight;
-  for (const r of weightRows) {
-    const x = xScale(r.date);
-    const y = yScale(r.weight);
-    ctx.beginPath();
-    ctx.arc(x, y, 5.6, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-
-  if (settings.showNotes) {
-    ctx.save();
-    ctx.fillStyle = settings.colours.text;
-    ctx.font = "20px system-ui, sans-serif";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "bottom";
-    for (const r of weightRows) {
-      if (!r.note) continue;
-      const x = Math.min(xScale(r.date) + 9, plotX + plotW - 240);
-      const y = Math.max(yScale(r.weight) - 9, plotY + 24);
-      ctx.fillText(r.note.slice(0, 34), x, y);
-    }
-    ctx.restore();
-  }
-
-  ctx.save();
-  ctx.fillStyle = settings.colours.text;
-  ctx.font = "48px system-ui, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "top";
-  const title = settings.title.replaceAll("[latest date]", dateKey(latest));
-  ctx.fillText(title, W / 2, 20);
-  ctx.restore();
-
-  ctx.save();
-  ctx.fillStyle = settings.colours.text;
-  ctx.font = "30px system-ui, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.translate(38, plotY + plotH / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.fillText(`Weight (${unitWeightLabel(settings.weightUnit)})`, 0, 0);
-  ctx.restore();
-
-  statusBox.textContent = `Saved under "${activeFileTitle}". ${weightRows.length} weight readings. ${doseRows.length} dose markers. Latest weight: ${latestWeight.dateString} = ${formatDisplayWeight(latestWeight.weight, settings.weightUnit)}${unitWeightLabel(settings.weightUnit)}.`;
-
-  renderStats(rows, settings);
-
-  if (!skipTableRender) renderTable(rows);
-}
-
-function renderTable(rows) {
-  dataTableBody.innerHTML = "";
-  rows.forEach((r, index) => {
-    const tr = document.createElement("tr");
-    tr.dataset.index = String(index);
-
-    const dateTd = document.createElement("td");
-    const dateInput = document.createElement("input");
-    dateInput.type = "date";
-    dateInput.value = r.dateString;
-    dateInput.className = "row-date";
-    dateTd.appendChild(dateInput);
-
-    const weightTd = document.createElement("td");
-    const weightInput = document.createElement("input");
-    weightInput.type = "number";
-    weightInput.step = "0.1";
-    weightInput.value = r.weight === null ? "" : formatDisplayWeight(r.weight);
-    weightInput.className = "row-input row-weight";
-    weightTd.appendChild(weightInput);
-
-    const doseTd = document.createElement("td");
-    const doseInput = document.createElement("input");
-    doseInput.type = "number";
-    doseInput.step = "0.1";
-    doseInput.value = r.dose === null ? "" : String(r.dose);
-    doseInput.className = "row-input";
-    doseTd.appendChild(doseInput);
-
-    const noteTd = document.createElement("td");
-    const noteInput = document.createElement("input");
-    noteInput.type = "text";
-    noteInput.value = r.note || "";
-    noteInput.className = "row-note";
-    noteInput.style.width = "220px";
-    noteInput.style.padding = "6px";
-    noteTd.appendChild(noteInput);
-
-    const actionTd = document.createElement("td");
-    const loadBtn = document.createElement("button");
-    loadBtn.textContent = "Update";
-    loadBtn.className = "small secondary";
-    loadBtn.addEventListener("click", () => {
-      document.getElementById("newDate").value = dateInput.value;
-      document.getElementById("newWeight").value = weightInput.value;
-      document.getElementById("newDose").value = doseInput.value;
-      document.getElementById("newNote").value = noteInput.value;
-      statusBox.textContent = `Ready to update ${dateInput.value}.`;
-    });
-
-    const delBtn = document.createElement("button");
-    delBtn.textContent = "Delete";
-    delBtn.className = "small danger";
-    delBtn.style.marginLeft = "6px";
-    delBtn.addEventListener("click", () => {
-      deleteRowByIndex(index);
-    });
-
-    actionTd.appendChild(loadBtn);
-    actionTd.appendChild(delBtn);
-
-    tr.appendChild(dateTd);
-    tr.appendChild(weightTd);
-    tr.appendChild(doseTd);
-    tr.appendChild(noteTd);
-    tr.appendChild(actionTd);
-
-    dataTableBody.appendChild(tr);
-  });
-}
-
-function rowsFromTable() {
-  const rows = [];
-  for (const tr of dataTableBody.querySelectorAll("tr")) {
-    const inputs = tr.querySelectorAll("input");
-    const date = parseDateOnly(inputs[0].value);
-    if (!date) continue;
-
-    const weightRaw = inputs[1].value.trim();
-    const doseRaw = inputs[2].value.trim();
-    const note = inputs[3] ? inputs[3].value.trim() : "";
-    const weight = weightRaw === "" ? null : weightDisplayToKg(Number(weightRaw));
-    const dose = doseRaw === "" ? null : Number(doseRaw);
-
-    rows.push({
-      date,
-      dateString: dateKey(date),
-      weight: Number.isFinite(weight) ? weight : null,
-      dose: Number.isFinite(dose) ? dose : null,
-      note
-    });
-  }
-
-  rows.sort((a, b) => a.date - b.date);
-  return rows;
-}
-
-function saveTableChanges() {
-  if (!requireActiveFile()) return;
-  const rows = rowsFromTable();
-  csvBox.value = toCsv(rows);
-  setDownloadDateDefaults(rows);
-  drawChart();
-}
-
-function deleteRowByIndex(index) {
-  if (!requireActiveFile()) return;
-  const rows = parseCsv(csvBox.value);
-  rows.splice(index, 1);
-  csvBox.value = toCsv(rows);
-  setDownloadDateDefaults(rows);
-  drawChart();
-}
-
-function addDays(date, days) {
-  const copy = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  copy.setDate(copy.getDate() + days);
-  return copy;
-}
-
-function prepareNextEntryDate(currentDateString) {
-  const currentDate = parseDateOnly(currentDateString);
-  if (!currentDate) return;
-
-  const nextDay = addDays(currentDate, 1);
-  document.getElementById("newDate").value = dateKey(nextDay);
-  document.getElementById("newWeight").value = "";
-  document.getElementById("newDose").value = "";
-  document.getElementById("newNote").value = "";
-  document.getElementById("newWeight").focus();
-}
-
-function addOrUpdateRow() {
-  if (!requireActiveFile()) return;
-
-  const d = document.getElementById("newDate").value;
-  const wStr = document.getElementById("newWeight").value.trim();
-  const doseStr = document.getElementById("newDose").value.trim();
-  const noteStr = document.getElementById("newNote").value.trim();
-
-  if (!d) {
-    markError("dateClickZone", "Choose a date first.");
-    openDatePicker();
-    return;
-  }
-
-  if (wStr === "" && doseStr === "") {
-    markError("newWeight", "Enter a weight, a dose, or both.");
-    document.getElementById("newDose").classList.add("error-field");
-    return;
-  }
-
-  clearErrors();
-  const rows = parseCsv(csvBox.value);
-  const existing = rows.find(r => r.dateString === d);
-
-  const weight = wStr === "" ? null : weightDisplayToKg(Number(wStr));
-  const dose = doseStr === "" ? null : Number(doseStr);
-
-  const row = {
-    date: parseDateOnly(d),
-    dateString: d,
-    weight: Number.isFinite(weight) ? weight : null,
-    dose: Number.isFinite(dose) ? dose : null,
-    note: noteStr
-  };
-
-  if (existing) {
-    existing.weight = row.weight;
-    existing.dose = row.dose;
-    existing.note = row.note;
-  } else {
-    rows.push(row);
-  }
-
-  rows.sort((a, b) => a.date - b.date);
-  csvBox.value = toCsv(rows);
-  autoRangeForFirstWeightIfNeeded(row);
-  drawChart();
-  prepareNextEntryDate(d);
-}
-
-function deleteSelectedDate() {
-  if (!requireActiveFile()) return;
-
-  const d = document.getElementById("newDate").value;
-  if (!d) {
-    markError("dateClickZone", "Choose a date to delete.");
-    return;
-  }
-
-  const rows = parseCsv(csvBox.value);
-  const filtered = rows.filter(r => r.dateString !== d);
-  if (filtered.length === rows.length) {
-    markError("dateClickZone", `No row found for ${d}.`);
-    return;
-  }
-
-  csvBox.value = toCsv(filtered);
-  drawChart();
-}
-
-function clearFields() {
-  document.getElementById("newDate").value = "";
-  document.getElementById("newWeight").value = "";
-  document.getElementById("newDose").value = "";
-  document.getElementById("newNote").value = "";
-  document.getElementById("newDate").focus();
-}
-
-function clearAllData() {
-  if (!requireActiveFile()) return;
-  const confirmed = confirm(`Clear all chart data in "${activeFileTitle}"?`);
-  if (!confirmed) return;
-  csvBox.value = EMPTY_CSV;
-  drawChart();
-}
-
-function safeFilename(name) {
-  return String(name || "weight_chart")
-    .trim()
-    .replace(/[^a-z0-9]+/gi, "_")
-    .replace(/^_+|_+$/g, "")
-    .toLowerCase() || "weight_chart";
-}
-
-
-function withTemporaryChartRange(startDate, endDate, callback) {
-  const previousRange = chartRangeOverride;
-  chartRangeOverride = { start: startDate, end: endDate };
-  try {
-    drawChart(true);
-    callback();
-  } finally {
-    chartRangeOverride = previousRange;
-    drawChart(true);
-  }
-}
-
-function setDownloadDateDefaults(rows) {
-  const startInput = document.getElementById("downloadStartDate");
-  const endInput = document.getElementById("downloadEndDate");
-  if (!startInput || !endInput || !rows.length) return;
-
-  const datedRows = rows.filter(r => r.weight !== null || r.dose !== null);
-  if (!datedRows.length) return;
-
-  const first = datedRows[0].dateString;
-  const last = datedRows[datedRows.length - 1].dateString;
-
-  if (!startInput.value) startInput.value = first;
-  if (!endInput.value) endInput.value = last;
-}
-
-function downloadRangePng() {
-  if (!requireActiveFile()) return;
-  saveCurrentFileFromScreen();
-
-  const rows = parseCsv(csvBox.value).filter(r => r.weight !== null || r.dose !== null);
-  if (!rows.length) {
-    markError("downloadStartDate", "Add data before downloading a date range.");
-    return;
-  }
-
-  const startInput = document.getElementById("downloadStartDate");
-  const endInput = document.getElementById("downloadEndDate");
-  const startDate = parseDateOnly(startInput.value);
-  const endDate = parseDateOnly(endInput.value);
-
-  if (!startDate) {
-    markError("downloadStartDate", "Choose a start date.");
-    return;
-  }
-
-  if (!endDate) {
-    markError("downloadEndDate", "Choose an end date.");
-    return;
-  }
-
-  if (startDate > endDate) {
-    markError("downloadEndDate", "End date must be after start date.");
-    return;
-  }
-
-  const inRange = rows.filter(r => r.date >= startDate && r.date <= endDate);
-  if (!inRange.length) {
-    markError("downloadStartDate", "No readings or doses in that date range.");
-    return;
-  }
-
-  const hasWeight = inRange.some(r => r.weight !== null);
-  if (!hasWeight) {
-    markError("downloadStartDate", "That date range has dose entries but no weight readings to chart.");
-    return;
-  }
-
-  withTemporaryChartRange(startDate, endDate, () => {
-    const filename = `${safeFilename(activeFileTitle || "chunkr")}_${dateKey(startDate)}_to_${dateKey(endDate)}.png`;
-    const link = document.createElement("a");
-    link.download = filename;
-    link.href = canvas.toDataURL("image/png");
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    activeFileStatus.textContent = `Downloaded chart from ${dateKey(startDate)} to ${dateKey(endDate)}.`;
-  });
-}
-
-function downloadPng() {
-  if (!requireActiveFile()) return;
-  drawChart(true);
-  const rows = parseCsv(csvBox.value);
-  const latest = rows.length ? rows.reduce((max, r) => r.date > max ? r.date : max, rows[0].date) : new Date();
-  const link = document.createElement("a");
-  link.download = `${safeFilename(activeFileTitle)}_${dateKey(latest).replaceAll("-", "")}.png`;
-  link.href = canvas.toDataURL("image/png");
-  link.click();
-}
-
-function downloadCsv() {
-  if (!requireActiveFile()) return;
-  saveTableChanges();
-  const rows = parseCsv(csvBox.value);
-  const latest = rows.length ? rows.reduce((max, r) => r.date > max ? r.date : max, rows[0].date) : new Date();
-  const blob = new Blob([csvBox.value], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.download = `${safeFilename(activeFileTitle)}_${dateKey(latest).replaceAll("-", "")}.csv`;
-  link.href = url;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-function resetSettings() {
-  if (!requireActiveFile()) return;
-  const theme = document.getElementById("themeToggle").checked ? "light" : "dark";
-  const settings = clone(DEFAULT_SETTINGS);
-  settings.theme = theme;
-  settings.colours = clone(THEME_PALETTES[theme]);
-  settings.doseColours = {};
-  settings.showNotes = false;
-  settings.title = `${activeFileTitle} (Updated to [latest date])`;
-  putSettingsIntoInputs(settings);
-  applyPageTheme(theme);
-  drawChart();
-}
-
-function applySettings() {
-  if (!requireActiveFile()) return;
-  drawChart();
-}
-
-function importCsvFile(file) {
-  if (!requireActiveFile()) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const text = String(reader.result || "");
-    const rows = parseCsv(text);
-    csvBox.value = rows.length ? toCsv(rows) : EMPTY_CSV;
-    drawChart();
-  };
-  reader.readAsText(file);
-}
-
-function setToday() {
-  if (!requireActiveFile()) return;
-  document.getElementById("newDate").value = dateKey(new Date());
-  document.getElementById("newWeight").focus();
-}
-
-function setNextDay() {
-  if (!requireActiveFile()) return;
-  const dateInput = document.getElementById("newDate");
-  const current = parseDateOnly(dateInput.value);
-  if (current) {
-    dateInput.value = dateKey(addDays(current, 1));
-  } else {
-    const rows = parseCsv(csvBox.value);
-    if (rows.length > 0) {
-      const latest = rows.reduce((max, r) => r.date > max ? r.date : max, rows[0].date);
-      dateInput.value = dateKey(addDays(latest, 1));
-    } else {
-      dateInput.value = dateKey(new Date());
-    }
-  }
-  document.getElementById("newWeight").focus();
-}
-
-function openDatePicker() {
-  const dateInput = document.getElementById("newDate");
-  if (dateInput.disabled) return;
-  dateInput.focus();
-
-  if (typeof dateInput.showPicker === "function") {
-    try {
-      dateInput.showPicker();
-      return;
-    } catch (e) {}
-  }
-
-  dateInput.click();
-}
-
-function changeTheme() {
-  const theme = document.getElementById("themeToggle").checked ? "light" : "dark";
-  applyPageTheme(theme);
-  applyThemeToGraphColours(theme);
-  if (activeFileTitle) drawChart();
-  else drawEmptyChart(getSettingsFromInputs(), "Create a user title to begin");
-}
-
-
-let choonAudioContext = null;
-let choonTimers = [];
-let choonActiveNodes = [];
-let choonIsPlaying = false;
-let choonPlayIndex = -1;
-let choonRunId = 0;
-let choonAudioUnlocked = false;
-let chartRangeOverride = null;
-
-function clearChoonTimers() {
-  choonTimers.forEach(id => clearTimeout(id));
-  choonTimers = [];
-}
-
-function stopChoon(showStopped = true) {
-  choonRunId++;
-  clearChoonTimers();
-
-  choonActiveNodes.forEach(node => {
-    try {
-      if (typeof node.stop === "function") node.stop();
-    } catch (e) {}
-    try {
-      if (typeof node.disconnect === "function") node.disconnect();
-    } catch (e) {}
-  });
-
-  choonActiveNodes = [];
-  choonIsPlaying = false;
-  choonPlayIndex = -1;
-
-  if (activeFileTitle) {
-    try { drawChart(true); } catch (e) {}
-  }
-
-  const status = document.getElementById("choonStatus");
-  if (status && showStopped) {
-    status.textContent = "Stopped.";
-    status.classList.remove("choon-playing");
-  }
-}
-
-function midiToFreq(midi) {
-  return 440 * Math.pow(2, (midi - 69) / 12);
-}
-
-function selectedChoonKeyRange() {
-  const start = Number(document.getElementById("choonStartKeyInput")?.value || 48);
-  const end = Number(document.getElementById("choonEndKeyInput")?.value || 72);
-  return {
-    low: Math.min(start, end),
-    high: Math.max(start, end),
-    start,
-    end
-  };
-}
-
-function midiForWeight(weight, minWeight, maxWeight) {
-  const keys = selectedChoonKeyRange();
-  const range = Math.max(0.1, maxWeight - minWeight);
-  const normalised = (maxWeight - weight) / range; // Lower weight = higher note
-  return keys.start + (keys.end - keys.start) * normalised;
-}
-
-function testChoonKeys() {
-  stopChoon(false);
-
-  const status = document.getElementById("choonStatus");
-  const ctx = getChoonAudioContext();
-  if (!ctx) {
-    if (status) status.textContent = "Audio is not supported in this browser.";
-    return;
-  }
-
-  const runTest = () => {
-    unlockChoonAudio(ctx);
-
-    const filter = createChoonFilter(ctx);
-    choonActiveNodes.push(filter);
-
-    const keys = selectedChoonKeyRange();
-    playTone(ctx, midiToFreq(keys.start), 0.55, "triangle", 0.08, filter);
-
-    const t = setTimeout(() => {
-      playTone(ctx, midiToFreq(keys.end), 0.75, "triangle", 0.08, filter);
-    }, 700);
-
-    const end = setTimeout(() => {
-      try { filter.disconnect(); } catch (e) {}
-      choonActiveNodes = choonActiveNodes.filter(node => node !== filter);
-      if (status) {
-        status.textContent = `Tested start key and end key.`;
-        status.classList.remove("choon-playing");
-      }
-    }, 1700);
-
-    choonTimers.push(t, end);
-
-    if (status) {
-      status.textContent = `Testing start key then end key.`;
-      status.classList.add("choon-playing");
-    }
-  };
-
-  if (ctx.state === "suspended") {
-    const resumeResult = ctx.resume();
-    if (resumeResult && typeof resumeResult.then === "function") {
-      resumeResult.then(runTest).catch(err => {
-        if (status) {
-          status.textContent = `Audio could not start: ${err.message || err}. On iPhone, turn off silent mode and tap Test keys again.`;
-          status.classList.remove("choon-playing");
-        }
-      });
-    } else {
-      runTest();
-    }
-  } else {
-    runTest();
-  }
-}
-
-function scaleIntervals(name) {
-  if (name === "minor") return [0, 2, 3, 5, 7, 8, 10, 12];
-  if (name === "major") return [0, 2, 4, 5, 7, 9, 11, 12];
-  return [0, 3, 5, 7, 10, 12];
-}
-
-function daysBetweenDates(a, b) {
-  return Math.max(1, Math.round((b.date - a.date) / 86400000));
-}
-
-function choonEventRows(rows) {
-  return rows
-    .filter(r => r.weight !== null || r.dose !== null)
-    .sort((a, b) => a.date - b.date);
-}
-
-function lastKnownWeightUpTo(rows, index) {
-  for (let i = index; i >= 0; i--) {
-    if (rows[i].weight !== null) return rows[i].weight;
-  }
-  for (let i = index + 1; i < rows.length; i++) {
-    if (rows[i].weight !== null) return rows[i].weight;
-  }
-  return null;
-}
-
-
-function getChoonAudioContext() {
-  const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  if (!AudioCtx) return null;
-  choonAudioContext = choonAudioContext || new AudioCtx();
-  return choonAudioContext;
-}
-
-function unlockChoonAudio(ctx) {
-  if (!ctx || choonAudioUnlocked) return;
-  try {
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.00001, ctx.currentTime);
-    oscillator.frequency.setValueAtTime(220, ctx.currentTime);
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 0.04);
-    oscillator.addEventListener("ended", () => {
-      try { oscillator.disconnect(); } catch (e) {}
-      try { gain.disconnect(); } catch (e) {}
-    });
-    choonAudioUnlocked = true;
-  } catch (e) {
-    // iOS may still be locked until resume completes; try again at playback.
-  }
-}
-
-function createChoonFilter(ctx) {
-  const filter = ctx.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.frequency.value = 1450;
-  filter.Q.value = 0.7;
-  filter.connect(ctx.destination);
-  return filter;
-}
-
-function playTone(ctx, freq, duration, type = "triangle", gainValue = 0.075, destination = null) {
-  const oscillator = ctx.createOscillator();
-  const gain = ctx.createGain();
-
-  oscillator.type = type;
-  oscillator.frequency.setValueAtTime(freq, ctx.currentTime);
-
-  gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(gainValue, ctx.currentTime + 0.035);
-  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, gainValue * 0.55), ctx.currentTime + duration * 0.55);
-  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
-
-  oscillator.connect(gain);
-  gain.connect(destination || ctx.destination);
-
-  oscillator.start();
-  oscillator.stop(ctx.currentTime + duration + 0.05);
-
-  choonActiveNodes.push(oscillator, gain);
-
-  oscillator.addEventListener("ended", () => {
-    choonActiveNodes = choonActiveNodes.filter(node => node !== oscillator && node !== gain);
-  });
-}
-
-function playChord(ctx, baseFreq, dose, duration, destination = null) {
-  const doseNumber = Number(dose) || 0;
-
-  // Higher dose = deeper chord. The bass root drops as dose rises.
-  const depthShift = Math.max(0.32, 1 - (Math.max(0, doseNumber - 2.5) / 15));
-  const root = baseFreq * depthShift;
-
-  let chord;
-  if (doseNumber >= 10) {
-    chord = [0.5, 1, 1.1892, 1.4983];      // deep minor-ish colour
-  } else if (doseNumber >= 7.5) {
-    chord = [0.5946, 1, 1.25, 1.5];        // deeper, fuller
-  } else if (doseNumber >= 5) {
-    chord = [0.7071, 1, 1.2, 1.5];         // mid-depth
-  } else {
-    chord = [1, 1.25, 1.6667];             // lighter
-  }
-
-  chord.forEach((ratio, index) => {
-    const t = setTimeout(() => {
-      if (!choonIsPlaying) return;
-      playTone(ctx, root * ratio, duration, "sine", 0.048, destination);
-    }, index * 55);
-    choonTimers.push(t);
-  });
-}
-
-function getChartGeometryForChoon(rows) {
-  const W = canvas.width;
-  const H = canvas.height;
-  const margin = { left: 120, right: 150, top: 90, bottom: 180 };
-  const plotX = margin.left;
-  const plotY = margin.top;
-  const plotW = W - margin.left - margin.right;
-  const plotH = H - margin.top - margin.bottom;
-
-  const start = rows[0].date;
-  const latest = rows.reduce((max, r) => r.date > max ? r.date : max, rows[0].date);
-  const settings = getSettingsFromInputs();
-  const yMin = settings.yMin;
-  const yMax = settings.yMax;
-
-  const xScale = d => {
-    const t0 = start.getTime();
-    const t1 = latest.getTime();
-    if (t1 === t0) return plotX + plotW / 2;
-    return plotX + ((d.getTime() - t0) / (t1 - t0)) * plotW;
-  };
-
-  const yScale = kg => plotY + ((yMax - kg) / (yMax - yMin)) * plotH;
-
-  return { plotX, plotY, plotW, plotH, xScale, yScale, settings };
-}
-
-function drawChoonProgress(eventRows, index) {
-  drawChart(true);
-
-  if (!eventRows[index]) return;
-
-  const g = getChartGeometryForChoon(eventRows);
-  const row = eventRows[index];
-  const fallbackWeight = lastKnownWeightUpTo(eventRows, index);
-  const markerWeight = row.weight !== null ? row.weight : (fallbackWeight !== null ? fallbackWeight : (g.settings.yMin + g.settings.yMax) / 2);
-  const x = g.xScale(row.date);
-  const y = g.yScale(markerWeight);
-
-  ctx.save();
-
-  ctx.strokeStyle = g.settings.theme === "light" ? "rgba(36, 91, 216, 0.85)" : "rgba(255, 210, 74, 0.9)";
-  ctx.lineWidth = 8;
-  ctx.setLineDash([18, 12]);
-  ctx.beginPath();
-  ctx.moveTo(x, g.plotY);
-  ctx.lineTo(x, g.plotY + g.plotH);
-  ctx.stroke();
-
-  ctx.setLineDash([]);
-  ctx.fillStyle = row.weight !== null
-    ? (g.settings.theme === "light" ? "rgba(36, 91, 216, 0.95)" : "rgba(255, 210, 74, 0.95)")
-    : (g.settings.theme === "light" ? "rgba(120, 67, 210, 0.95)" : "rgba(205, 150, 255, 0.95)");
-  ctx.beginPath();
-  ctx.arc(x, y, row.weight !== null ? 18 : 15, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = g.settings.colours.plotBg;
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.arc(x, y, row.weight !== null ? 10 : 8, 0, Math.PI * 2);
-  ctx.stroke();
-
-  ctx.fillStyle = g.settings.text || g.settings.colours.text;
-  ctx.font = "24px system-ui, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "bottom";
-  ctx.fillText(`${index + 1}/${eventRows.length}`, x, Math.max(g.plotY + 28, y - 24));
-
-  ctx.restore();
-}
-
-function playChunkrChoon() {
-  if (!requireActiveFile()) return;
-
-  // Stop the old performance silently before starting a new one.
-  stopChoon(false);
-
-  const status = document.getElementById("choonStatus");
-
-  try {
-    const rows = parseCsv(csvBox.value);
-    const eventRows = choonEventRows(rows);
-    const weightRows = eventRows.filter(r => r.weight !== null);
-
-    if (eventRows.length < 1) {
-      if (status) {
-        status.textContent = "Add at least one weight or dose entry first.";
-        status.classList.remove("choon-playing");
-      }
-      markError("newDate", "Add at least one weight or dose entry first.");
-      return;
-    }
-
-    const ctx = getChoonAudioContext();
-    if (!ctx) {
-      if (status) {
-        status.textContent = "Audio is not supported in this browser.";
-        status.classList.remove("choon-playing");
-      }
-      return;
-    }
-
-    unlockChoonAudio(ctx);
-
-    const runId = ++choonRunId;
-
-    const beginPlayback = () => {
-      if (runId !== choonRunId) return;
-
-      unlockChoonAudio(ctx);
-
-      const filter = createChoonFilter(ctx);
-      choonActiveNodes.push(filter);
-
-      const weights = weightRows.map(r => r.weight);
-      const minWeight = weights.length ? Math.min(...weights) : null;
-      const maxWeight = weights.length ? Math.max(...weights) : null;
-
-      const speedValue = Number(document.getElementById("choonSpeedInput").value) || 5;
-
-      // Proper speed control: higher = faster. One day on the x axis equals one beat.
-      const beatMs = Math.round(900 - (speedValue - 1) * 80); // speed 1 = 900ms/day, speed 10 = 180ms/day
-      const intervals = scaleIntervals(document.getElementById("choonScaleInput").value);
-
-      // User-selected pitch range. Start key maps to the heavier end, end key maps to the lighter end.
-      const keyRange = selectedChoonKeyRange();
-
-      // X-axis time is the rhythm: date gap in days = gap in beats. No compression.
-      const schedule = [];
-      let currentOffsetMs = 0;
-      for (let i = 0; i < eventRows.length; i++) {
-        const daysUntilNext = i < eventRows.length - 1 ? daysBetweenDates(eventRows[i], eventRows[i + 1]) : 1;
-        const noteDuration = Math.max(0.16, (daysUntilNext * beatMs) / 1000);
-        const chordDuration = Math.max(0.75, Math.min(noteDuration, 2.6));
-
-        schedule.push({
-          offsetMs: currentOffsetMs,
-          daysUntilNext,
-          noteDuration,
-          chordDuration
-        });
-
-        currentOffsetMs += daysUntilNext * beatMs;
-      }
-
-      choonIsPlaying = true;
-      choonPlayIndex = -1;
-
-      if (status) {
-        status.textContent = `Playing ${eventRows.length} events. One day = one beat. Speed ${speedValue}/10. Jabs play even without weight.`;
-        status.classList.add("choon-playing");
-      }
-
-      eventRows.forEach((row, index) => {
-        const timing = schedule[index];
-
-        const timer = setTimeout(() => {
-          if (!choonIsPlaying || runId !== choonRunId) return;
-
-          choonPlayIndex = index;
-          drawChoonProgress(eventRows, index);
-
-          const weightForPitch = row.weight !== null ? row.weight : lastKnownWeightUpTo(eventRows, index);
-          let midi;
-          if (weightForPitch !== null && minWeight !== null && maxWeight !== null) {
-            midi = midiForWeight(weightForPitch, minWeight, maxWeight);
-          } else {
-            midi = (keyRange.start + keyRange.end) / 2;
-          }
-
-          const nearestScaleStep = Math.round(midi);
-          const freq = midiToFreq(nearestScaleStep);
-
-          // Weight rows play the melody. Dose-only rows still play their jab chord.
-          if (row.weight !== null) {
-            playTone(ctx, freq, timing.noteDuration, "triangle", 0.075, filter);
-            playTone(ctx, freq * 2.01, Math.max(0.12, timing.noteDuration * 0.72), "sine", 0.018, filter);
-          }
-
-          if (row.dose !== null) {
-            playChord(ctx, freq * 0.5, row.dose, timing.chordDuration, filter);
-          }
-        }, timing.offsetMs);
-
-        choonTimers.push(timer);
-      });
-
-      const endAtMs = currentOffsetMs + 350;
-
-      const endTimer = setTimeout(() => {
-        if (runId !== choonRunId) return;
-
-        choonIsPlaying = false;
-        choonPlayIndex = -1;
-        drawChart(true);
-
-        try {
-          filter.disconnect();
-        } catch (e) {}
-
-        choonActiveNodes = choonActiveNodes.filter(node => node !== filter);
-
-        if (status) {
-          status.textContent = `Played ${eventRows.length} events from ${dateKey(eventRows[0].date)} to ${dateKey(eventRows[eventRows.length - 1].date)}.`;
-          status.classList.remove("choon-playing");
-        }
-      }, Math.ceil(endAtMs));
-
-      choonTimers.push(endTimer);
-    };
-
-    if (ctx.state === "suspended") {
-      if (status) {
-        status.textContent = "Starting audio…";
-        status.classList.add("choon-playing");
-      }
-      const resumeResult = ctx.resume();
-      if (resumeResult && typeof resumeResult.then === "function") {
-        resumeResult.then(beginPlayback).catch(err => {
-          if (status) {
-            status.textContent = `Audio could not start: ${err.message || err}. On iPhone, turn off silent mode and tap Play Choon again.`;
-            status.classList.remove("choon-playing");
-          }
-        });
-      } else {
-        beginPlayback();
-      }
-    } else {
-      beginPlayback();
-    }
-  } catch (err) {
-    if (status) {
-      status.textContent = `Choon error: ${err.message || err}`;
-      status.classList.remove("choon-playing");
-    }
-  }
-}
-
-
-document.getElementById("newFileBtn").addEventListener("click", createNewFile);
-document.getElementById("openFileBtn").addEventListener("click", openSelectedFile);
-document.getElementById("fileSelect").addEventListener("change", openSelectedFile);
-document.getElementById("renameFileBtn").addEventListener("click", renameCurrentFile);
-document.getElementById("deleteFileBtn").addEventListener("click", deleteCurrentFile);
-document.getElementById("themeToggle").addEventListener("change", changeTheme);
-
-document.getElementById("dateClickZone").addEventListener("click", event => {
-  if (event.target.id !== "newDate") openDatePicker();
-});
-
-document.getElementById("newFileTitle").addEventListener("keydown", event => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    createNewFile();
-  }
-});
-
-document.getElementById("addRowBtn").addEventListener("click", addOrUpdateRow);
-["newDate", "newWeight", "newDose", "newNote"].forEach(id => {
-  document.getElementById(id).addEventListener("keydown", event => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      addOrUpdateRow();
-    }
-  });
-});
-
-document.getElementById("todayBtn").addEventListener("click", setToday);
-document.getElementById("nextDayBtn").addEventListener("click", setNextDay);
-document.getElementById("clearFieldsBtn").addEventListener("click", clearFields);
-document.getElementById("downloadPngBtn").addEventListener("click", downloadPng);
-document.getElementById("downloadRangePngBtn").addEventListener("click", downloadRangePng);
-document.getElementById("downloadCsvBtn").addEventListener("click", downloadCsv);
-document.getElementById("playChoonBtn").addEventListener("click", playChunkrChoon);
-document.getElementById("stopChoonBtn").addEventListener("click", stopChoon);
-document.getElementById("testKeysBtn").addEventListener("click", testChoonKeys);
-document.getElementById("clearAllDataBtn").addEventListener("click", clearAllData);
-document.getElementById("clearRawCsvBtn").addEventListener("click", clearAllData);
-document.getElementById("saveTableBtn").addEventListener("click", saveTableChanges);
-document.getElementById("sortTableBtn").addEventListener("click", saveTableChanges);
-document.getElementById("weightUnitInput").addEventListener("change", () => {
-  const select = document.getElementById("weightUnitInput");
-  const oldUnit = select.dataset.currentWeightUnit || "kg";
-  const newUnit = select.value === "lb" ? "lb" : "kg";
-  convertVisibleWeightFields(oldUnit, newUnit);
-  select.dataset.currentWeightUnit = newUnit;
-  drawChart(true);
-});
-
-document.getElementById("heightUnitInput").addEventListener("change", () => {
-  const select = document.getElementById("heightUnitInput");
-  convertVisibleHeightFields();
-  select.dataset.currentHeightUnit = heightUnitFromInput();
-  drawChart(true);
-});
-
-document.getElementById("applySettingsBtn").addEventListener("click", applySettings);
-document.getElementById("resetSettingsBtn").addEventListener("click", resetSettings);
-document.getElementById("redrawFromCsvBtn").addEventListener("click", () => {
-  if (!requireActiveFile()) return;
-  drawChart();
-});
-document.getElementById("importCsvBtn").addEventListener("click", () => {
-  if (!requireActiveFile()) return;
-  document.getElementById("importCsvFile").click();
-});
-document.getElementById("importCsvFile").addEventListener("change", event => {
-  const file = event.target.files && event.target.files[0];
-  if (file) importCsvFile(file);
-});
-
-document.querySelectorAll('input[type="color"]').forEach(input => {
-  if (input.closest("#doseColourGrid")) return;
-  input.addEventListener("input", () => {
-    if (!activeFileTitle) return;
-    clearTimeout(window.__colourTimer);
-    window.__colourTimer = setTimeout(drawChart, 120);
-  });
-});
-
-["titleInput", "yMinInput", "yMaxInput", "heightInput", "heightCmInput", "heightFeetInput", "heightInchesInput", "weightUnitInput", "heightUnitInput", "showDosesInput", "showNotesInput"].forEach(id => {
-  document.getElementById(id).addEventListener("change", () => {
-    if (!activeFileTitle) return;
-    drawChart();
-  });
-});
-
-csvBox.addEventListener("input", () => {
-  if (!activeFileTitle) return;
-  clearTimeout(window.__drawTimer);
-  window.__drawTimer = setTimeout(drawChart, 500);
-});
-
-
-["newFileTitle", "newDate", "newWeight", "newDose", "newNote", "titleInput", "yMinInput", "yMaxInput", "heightInput", "showDosesInput", "showNotesInput", "downloadStartDate", "downloadEndDate"].forEach(clearErrorOnInput);
-
-window.addEventListener("beforeunload", () => {
-  stopChoon();
-  saveCurrentFileFromScreen();
-});
-
-function initialise() {
-  applyPageTheme("light");
-
-  const files = loadFiles();
-  const titles = Object.keys(files).sort((a, b) => a.localeCompare(b));
-  const storedActive = localStorage.getItem(STORAGE_ACTIVE_FILE_KEY);
-
-  if (storedActive && files[storedActive]) {
-    loadFileIntoScreen(storedActive);
-  } else if (titles.length > 0) {
-    loadFileIntoScreen(titles[0]);
-  } else {
-    initialiseNoFileState();
-  }
-}
-
-initialise();
-</script>
+    <div id="styleControls" class="style-controls"></div>
+    <footer class="style-footer">
+      <button id="styleResetBtn" class="style-reset" type="button">RESET</button>
+      <button id="styleDoneBtn" class="style-done" type="button">DONE</button>
+    </footer>
+  </section>
+</div>
+
+<div id="resetConfirmModal" class="modal reset-confirm-modal" hidden>
+  <div class="modal-card reset-confirm-card" role="dialog" aria-modal="true" aria-labelledby="resetConfirmTitle">
+    <span class="complete-kicker" data-pack-context-label>BOXXY ORIGINALS</span>
+    <h2 id="resetConfirmTitle">RESET<br>PROGRESS?</h2>
+    <p>This will clear completed levels and send you back to level 1.</p>
+    <div class="reset-confirm-actions">
+      <button id="resetCancelBtn" class="reset-cancel" type="button">CANCEL</button>
+      <button id="resetConfirmBtn" class="reset-confirm" type="button">RESET</button>
+    </div>
+  </div>
+</div>
+
+<div id="packModal" class="modal pack-modal" hidden>
+  <section class="pack-card" role="dialog" aria-modal="true" aria-labelledby="packModalTitle">
+    <header class="pack-head">
+      <div>
+        <span class="complete-kicker" data-pack-context-label>BOXXY ORIGINALS</span>
+        <h2 id="packModalTitle">PUZZLE PACKS</h2>
+        <p>Choose BOXXY Dailys or a puzzle pack. BOXXY Original and Microban are always available; complete either 50-level pack to unlock the additional collections.</p>
+      </div>
+      <button id="packCloseBtn" class="pack-close" type="button" aria-label="Close puzzle packs">×</button>
+    </header>
+    <div id="packGrid" class="pack-grid" aria-label="Available puzzle packs"></div>
+    <p class="pack-license-note">Uploaded collections retain their original titles, authorship and non-commercial distribution terms.</p>
+  </section>
+</div>
+
+<div id="dailyArchiveModal" class="modal daily-archive-modal" hidden>
+  <section class="daily-archive-card" role="dialog" aria-modal="true" aria-labelledby="dailyArchiveTitle">
+    <header class="daily-archive-head">
+      <div>
+        <span class="complete-kicker">BOXXY DAILYS</span>
+        <h2 id="dailyArchiveTitle">DAILY PUZZLES</h2>
+        <p>Play today’s puzzle or return to an earlier date. Future puzzles remain hidden until their local release time.</p>
+      </div>
+      <button id="dailyArchiveCloseBtn" class="daily-archive-close" type="button" aria-label="Close Daily Puzzles">×</button>
+    </header>
+    <div class="daily-archive-summary-row">
+      <p id="dailyArchiveSummary" class="daily-archive-summary">YOUR DAILY HISTORY</p>
+      <div class="daily-archive-countdown" aria-live="polite">
+        <span id="dailyArchiveCountdownLabel">NEXT DAILY IN</span>
+        <strong id="dailyArchiveCountdown">--:--:--</strong>
+        <small id="dailyArchiveCountdownDate"></small>
+      </div>
+    </div>
+    <div id="dailyArchiveMonths" class="daily-archive-months" aria-label="Available Daily Boxxy puzzles"></div>
+  </section>
+</div>
+
+<div id="grandCelebration" class="grand-celebration" hidden aria-hidden="true"></div>
+
+<div id="completeModal" class="modal complete-modal" hidden>
+  <div class="modal-card complete-card" role="dialog" aria-modal="true" aria-labelledby="completeTitle">
+    <button id="completeCloseBtn" class="complete-close" type="button" aria-label="Close congratulations">×</button>
+    <div class="complete-art" aria-hidden="true">
+      <canvas id="completeSprite" class="complete-sprite" width="350" height="350"></canvas>
+    </div>
+    <div class="complete-copy">
+      <span class="complete-kicker" data-pack-context-label>BOXXY ORIGINALS</span>
+      <h2 id="completeTitle">PUZZLE<br>CLEARED</h2>
+      <p id="completedPackHeading" class="completed-pack-heading"></p>
+      <p id="completeText"></p>
+      <section id="dailySharePanel" class="daily-share-panel" hidden aria-labelledby="dailyShareTitle">
+        <div class="daily-share-heading">
+          <strong id="dailyShareTitle">SHARE YOUR RESULT</strong>
+          <span>STARTING POSITION · NO SOLUTION SPOILER</span>
+        </div>
+        <textarea id="dailyShareText" readonly spellcheck="false" aria-label="Daily Boxxy result text"></textarea>
+        <div class="daily-share-actions">
+          <div class="daily-share-buttons">
+            <button id="dailyShareButton" class="daily-share-button" type="button"><span>SHARE RESULT</span><b aria-hidden="true">↗</b></button>
+            <button id="dailyCopyButton" class="daily-copy-button" type="button">COPY TEXT</button>
+          </div>
+          <span id="dailyShareStatus" class="daily-share-status" role="status" aria-live="polite"></span>
+        </div>
+      </section>
+      <section id="packStarAward" class="pack-star-award" hidden aria-label="Pack completion reward awarded">
+        <span id="packStarAwardIcon" class="pack-star-award-icon" aria-hidden="true">
+          <svg viewBox="0 0 100 100" focusable="false"><path d="M50 6 62.7 34.2 93.5 37.5 70.5 58.3 77 88.5 50 73 23 88.5 29.5 58.3 6.5 37.5 37.3 34.2Z"/></svg>
+        </span>
+        <p id="packStarAwardText">A completion reward has been added to your badge collection. Find it beside BOXXY at the top of your screen.</p>
+      </section>
+      <section id="packCompletionStats" class="pack-completion-stats" hidden aria-label="Puzzle pack totals">
+        <div><span>TOTAL MOVES</span><strong id="packTotalMoves">—</strong></div>
+        <div><span>TOTAL PUSHES</span><strong id="packTotalPushes">—</strong></div>
+        <div><span>TOTAL TIME</span><strong id="packTotalTime">—</strong></div>
+      </section>
+      <section id="finalPackPicker" class="final-pack-picker" hidden aria-labelledby="finalPackTitle">
+        <div class="final-pack-heading">
+          <strong id="finalPackTitle">CHOOSE YOUR NEXT PACK</strong>
+        </div>
+        <div id="finalPackGrid" class="final-pack-grid" aria-label="Other puzzle packs"></div>
+        <div class="final-pack-more-row"><button id="finalPackMoreBtn" class="final-pack-more-btn" type="button" hidden>MORE</button></div>
+        <p id="finalPackStatus" class="final-pack-status" aria-live="polite"></p>
+      </section>
+      <div class="complete-actions">
+        <button id="makerApplySolveBtn" class="complete-secondary" type="button" hidden>APPLY SOLVE</button>
+        <button id="claimPrizeBtn" class="claim-prize-btn" type="button" hidden><span>CLAIM YOUR PRIZE!</span><b aria-hidden="true">★</b></button>
+        <div id="dailyCompletionActions" class="completion-action-set daily-completion-actions" hidden>
+          <button id="dailyCompletePackBtn" class="complete-primary daily-complete-choice daily-complete-pack-choice" type="button"><span>LEVEL PACK SELECTOR</span><b aria-hidden="true">→</b></button>
+          <button id="dailyCompleteArchiveBtn" class="complete-primary daily-complete-choice daily-complete-archive-choice" type="button"><span>DAILY BOXXYS</span><b aria-hidden="true">→</b></button>
+        </div>
+        <div id="standardCompletionActions" class="completion-action-set standard-completion-actions">
+          <button id="nextBtn" class="complete-primary"><span>NEXT LEVEL</span><b aria-hidden="true">→</b></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="prizeModal" class="modal prize-modal" hidden>
+  <section class="prize-card" role="dialog" aria-modal="true" aria-labelledby="prizeTitle">
+    <button id="prizeCloseBtn" class="prize-close" type="button" aria-label="Close prize message">×</button>
+
+    <header class="prize-heading">
+      <h2 id="prizeTitle">THANK YOU!</h2>
+    </header>
+
+    <figure class="prize-poster">
+      <img src="assets/ui/boxxy-prize-poster-lowres.jpg" alt="BOXXY poster featuring the original 50 puzzle levels">
+    </figure>
+
+    <div class="prize-copy">
+      <p>Thank you for completing all 50 levels and for spending so much time with BOXXY. I built this game out of love and curiosity, and I hope you found as much joy in solving it as I did in creating it.</p>
+      <p>As a small thank-you, I’d love to send you a signed BOXXY poster featuring the original 50 levels. Email me a screenshot of your completed levels page, along with your name and postal address, and I’ll send one anywhere in the world.</p>
+      <p class="prize-limit"><strong>This offer is for the first 50 people to complete the collection, so please be quick!</strong></p>
+      <a class="prize-email" href="mailto:archedroof+boxxy@gmail.com?subject=I%20completed%20all%2050%20BOXXY%20levels&body=Hello%20Sam%2C%0A%0AI%20completed%20all%2050%20BOXXY%20levels.%20I%20have%20attached%20a%20screenshot%20of%20my%20completed%20levels%20page.%0A%0AMy%20name%20and%20postal%20address%20are%3A%0A%0A">
+        EMAIL SAM
+        <small>archedroof+boxxy@gmail.com</small>
+      </a>
+    </div>
+  </section>
+</div>
+
+<div id="levelMakerModal" class="modal maker-modal" hidden>
+  <section class="maker-card" role="dialog" aria-modal="true" aria-labelledby="makerTitle">
+    <header class="maker-head">
+      <div>
+        <span class="complete-kicker">SECRET WORKSHOP</span>
+        <h2 id="makerTitle">LEVEL MAKER</h2>
+        <p>Draw a Sokoban level, paste an existing one, then test it on the main board.</p>
+      </div>
+      <div class="maker-head-actions">
+        <button id="makerFullscreenBtn" class="maker-fullscreen" type="button" aria-label="Enter full screen" aria-pressed="false" title="Enter full screen"><span aria-hidden="true">⛶</span><b>FULL SCREEN</b></button>
+        <button id="makerCloseBtn" class="maker-close" type="button" aria-label="Close level maker">×</button>
+      </div>
+    </header>
+
+    <div class="maker-layout">
+      <section class="maker-workbench">
+        <div class="maker-toolbar" aria-label="Level drawing tools">
+          <button type="button" data-maker-tool="wall"><i class="maker-tool-icon wall"></i><span>WALL</span></button>
+          <button type="button" data-maker-tool="floor"><i class="maker-tool-icon floor"></i><span>FLOOR</span></button>
+          <button type="button" data-maker-tool="player"><i class="maker-tool-icon player"></i><span>PLAYER</span></button>
+          <button type="button" data-maker-tool="box"><i class="maker-tool-icon box"></i><span>BOX</span></button>
+          <button type="button" data-maker-tool="goal"><i class="maker-tool-icon goal"></i><span>GOAL</span></button>
+          <button type="button" data-maker-tool="boxgoal"><i class="maker-tool-icon boxgoal"></i><span>BOX + GOAL</span></button>
+          <button type="button" data-maker-tool="playergoal"><i class="maker-tool-icon playergoal"></i><span>PLAYER + GOAL</span></button>
+          <button type="button" data-maker-tool="void"><i class="maker-tool-icon void"></i><span>VOID</span></button>
+        </div>
+        <div id="makerGoalPalette" class="maker-goal-palette rainbow-off" aria-label="Rainbow Mode and target colour palette">
+          <div class="maker-rainbow-inline">
+            <strong>RAINBOW</strong>
+            <label class="maker-rainbow-switch">
+              <input id="makerRainbowMode" type="checkbox" role="switch" aria-describedby="makerRainbowDescription">
+              <span aria-hidden="true"></span>
+              <b id="makerRainbowState">OFF</b>
+            </label>
+          </div>
+          <div class="maker-goal-colour-controls">
+            <strong>TARGET COLOUR</strong>
+            <div class="maker-goal-swatches">
+            <button type="button" data-maker-goal-colour="red" aria-label="Red target" title="Red"><span></span></button>
+            <button type="button" data-maker-goal-colour="blue" aria-label="Blue target" title="Blue"><span></span></button>
+            <button type="button" data-maker-goal-colour="green" aria-label="Green target" title="Green"><span></span></button>
+            <button type="button" data-maker-goal-colour="purple" aria-label="Purple target" title="Purple"><span></span></button>
+            <button type="button" data-maker-goal-colour="light-blue" aria-label="Light blue target" title="Light blue"><span></span></button>
+            <button type="button" data-maker-goal-colour="teal" aria-label="Teal target" title="Teal"><span></span></button>
+            <button type="button" data-maker-goal-colour="black" aria-label="Black target" title="Black"><span></span></button>
+            <button type="button" data-maker-goal-colour="grey" aria-label="Grey target" title="Grey"><span></span></button>
+            <button type="button" data-maker-goal-colour="burgundy" aria-label="Burgundy target" title="Burgundy"><span></span></button>
+            <button type="button" data-maker-goal-colour="brown" aria-label="Brown target" title="Brown"><span></span></button>
+            <button type="button" data-maker-goal-colour="orange" aria-label="Orange target" title="Orange"><span></span></button>
+            <button type="button" data-maker-goal-colour="yellow" aria-label="Yellow target" title="Yellow"><span></span></button>
+            <button type="button" data-maker-goal-colour="lime" aria-label="Lime target" title="Lime"><span></span></button>
+            <button type="button" data-maker-goal-colour="pink" aria-label="Pink target" title="Pink"><span></span></button>
+            <button type="button" data-maker-goal-colour="cream" aria-label="Cream target" title="Cream"><span></span></button>
+            </div>
+            <small>Choose a colour, then draw or repaint a goal.</small>
+          </div>
+          <small id="makerRainbowDescription" class="maker-rainbow-description">OFF — standard Sokoban: <code>.</code> target, <code>$</code> box, <code>*</code> box on target.</small>
+        </div>
+        <section class="maker-existing-strip" aria-labelledby="makerExistingTitle">
+          <h3 id="makerExistingTitle">OPEN EXISTING PUZZLE</h3>
+          <div class="maker-existing-row">
+            <select id="makerPackSelect" aria-label="Puzzle pack"></select>
+            <select id="makerLevelSelect" aria-label="Puzzle from selected pack"></select>
+            <button id="makerOpenLevelBtn" type="button">OPEN PUZZLE</button>
+          </div>
+        </section>
+        <div class="maker-grid-shell">
+          <div id="makerGrid" class="maker-grid" role="grid" aria-label="Level editor grid"></div>
+        </div>
+      </section>
+
+      <aside class="maker-controls">
+        <section class="maker-panel maker-generator-panel">
+          <h3>GENERATE NEW LEVEL</h3>
+          <div class="maker-generator-fields">
+            <label>WIDTH<input id="makerWidth" type="number" min="5" max="36" value="10"></label>
+            <span>×</span>
+            <label>HEIGHT<input id="makerHeight" type="number" min="5" max="36" value="10"></label>
+            <label>BOXES<input id="makerBoxes" type="number" min="1" max="12" value="3"></label>
+          </div>
+          <div class="maker-generator-options">
+            <label class="maker-check-option"><input id="makerTested" type="checkbox"><span><b>TESTED</b><small>Only keeps a generated puzzle when a valid solution is known. Slower.</small></span></label>
+            <label class="maker-check-option"><input id="makerSquare" type="checkbox" checked><span><b>SQUARE</b><small>Keeps the outside wall as a clean rectangle.</small></span></label>
+            <label class="maker-check-option"><input id="makerMaze" type="checkbox"><span><b>MAZE</b><small>Uses mostly one-cell passages, thin walls and a few turning bays.</small></span></label>
+            <label class="maker-check-option"><input id="makerSymmetry" type="checkbox"><span><b>SYMMETRY</b><small>Mirrors the board on a random axis. Pieces and the player may vary where needed.</small></span></label>
+          </div>
+          <button id="makerGenerateBtn" class="maker-generate" type="button">GENERATE NEW LEVEL</button>
+          <div class="maker-mini-actions maker-three-actions">
+            <button id="makerResizeBtn" type="button">RESIZE GRID</button>
+            <button id="makerRoomBtn" type="button">EMPTY ROOM</button>
+            <button id="makerClearBtn" type="button">CLEAR</button>
+          </div>
+        </section>
+
+        <section class="maker-panel maker-save-panel">
+          <h3>SAVED LEVELS</h3>
+          <div class="maker-save-row">
+            <input id="makerSaveName" type="text" maxlength="48" placeholder="Level name" aria-label="Saved level name">
+            <button id="makerSaveBtn" type="button">SAVE LEVEL</button>
+          </div>
+          <div class="maker-load-row">
+            <select id="makerSavedSelect" aria-label="Saved levels"><option value="">NO SAVED LEVELS</option></select>
+            <button id="makerLoadBtn" type="button">LOAD</button>
+            <button id="makerDeleteBtn" type="button">DELETE</button>
+          </div>
+          <div class="maker-pack-builder-launch">
+            <button id="makerPackBuilderBtn" type="button"><span>LEVEL PACK BUILDER</span><b aria-hidden="true">→</b></button>
+            <small>Arrange saved puzzles into packs or the private Daily Puzzle calendar.</small>
+          </div>
+        </section>
+
+        <section class="maker-panel maker-paste-panel">
+          <h3>PASTE OR EXPORT LEVEL</h3>
+          <textarea id="makerText" spellcheck="false" aria-label="Sokoban level text" placeholder="########
+#  .   #
+#  $ @ #
+########"></textarea>
+          <div class="maker-mini-actions maker-three-actions">
+            <button id="makerImportBtn" type="button">IMPORT</button>
+            <button id="makerCopyBtn" type="button">COPY LEVEL</button>
+            <button id="makerShareBtn" type="button">COPY SHARE LINK</button>
+          </div>
+          <p id="makerStandardLegend" class="maker-legend"><code>#</code> wall · <code>@</code> player · <code>$</code> box · <code>.</code> target · <code>*</code> box on target · <code>+</code> player on target</p>
+          <p id="makerRainbowLegend" class="maker-legend" hidden><code>#</code> wall · <code>@</code> player · <code>$</code> yellow box · lowercase colour letter = target · uppercase colour letter = box on that target</p>
+          <details id="makerColourCodes" class="maker-colour-codes" hidden>
+            <summary>COLOUR LETTERS</summary>
+            <p><code>R/r</code> red · <code>B/b</code> blue · <code>G/g</code> green · <code>P/p</code> purple · <code>C/c</code> light blue · <code>T/t</code> teal · <code>K/k</code> black · <code>A/a</code> grey · <code>M/m</code> burgundy · <code>W/w</code> brown · <code>O/o</code> orange · <code>Y/y</code> yellow · <code>L/l</code> lime · <code>F/f</code> pink · <code>I/i</code> cream</p>
+            <p><code>1–0 ! ? % &amp; =</code> preserve a player standing on the corresponding coloured target.</p>
+          </details>
+        </section>
+
+        <div id="makerStatus" class="maker-status" aria-live="polite">Ready.</div>
+        <div class="maker-main-actions">
+          <button id="makerExitTestBtn" class="maker-exit" type="button" hidden>EXIT TEST</button>
+          <button id="makerSolveBtn" class="maker-solve" type="button">SOLVE PUZZLE</button>
+          <button id="makerTestBtn" class="maker-test" type="button">TEST LEVEL <b aria-hidden="true">→</b></button>
+        </div>
+      </aside>
+    </div>
+  </section>
+</div>
+
+
+<div id="makerPackBuilderModal" class="modal maker-pack-builder-modal" hidden>
+  <section class="maker-pack-builder-card" role="dialog" aria-modal="true" aria-labelledby="makerPackBuilderTitle">
+    <header class="maker-pack-builder-head">
+      <div>
+        <span class="complete-kicker">LEVEL MAKER</span>
+        <h2 id="makerPackBuilderTitle">PACK BUILDER</h2>
+        <p>Drag saved puzzles into a level pack or onto fixed dates in the private Daily Puzzle calendar. Every card shows the puzzle's starting position.</p>
+      </div>
+      <button id="makerPackBuilderCloseBtn" class="maker-close" type="button" aria-label="Close pack builder">×</button>
+    </header>
+
+    <div class="pack-builder-command-row">
+      <div class="pack-builder-draft-controls">
+        <label>DRAFT PACK
+          <select id="packDraftSelect" aria-label="Saved pack drafts"></select>
+        </label>
+        <button id="packNewDraftBtn" type="button">NEW PACK</button>
+        <button id="packSaveDraftBtn" type="button">SAVE DRAFT</button>
+        <button id="packDeleteDraftBtn" type="button">DELETE</button>
+      </div>
+      <div class="pack-builder-tabs" role="tablist" aria-label="Pack builder sections">
+        <button id="packBuilderPackTab" type="button" role="tab" aria-selected="true" data-pack-builder-tab="pack">LEVEL PACK</button>
+        <button id="packBuilderDailyTab" type="button" role="tab" aria-selected="false" data-pack-builder-tab="daily">DAILY PUZZLE</button>
+      </div>
+    </div>
+
+    <p id="packBuilderStatus" class="pack-builder-status" aria-live="polite">Drag saved levels into the pack order, or drop them directly onto fixed dates in the Daily calendar.</p>
+
+    <section class="pack-builder-library" aria-labelledby="packBuilderLibraryTitle">
+      <header>
+        <div>
+          <h3 id="packBuilderLibraryTitle">SAVED LEVEL LIBRARY</h3>
+          <span id="packLibraryCount"></span>
+        </div>
+        <div class="pack-library-controls">
+          <input id="packLibrarySearch" type="search" placeholder="Filter saved levels" aria-label="Filter saved levels">
+          <label class="pack-library-columns">GRID COLUMNS
+            <select id="packLibraryColumnsSelect" aria-label="Number of columns in the Saved Level Library">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6" selected>6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+            </select>
+          </label>
+          <label class="pack-library-hide-used">
+            <input id="packLibraryHideUsed" type="checkbox">
+            <span>HIDE USED</span>
+          </label>
+          <button id="packLibraryExpandBtn" class="pack-library-expand" type="button" aria-expanded="false">EXPAND ↓</button>
+        </div>
+      </header>
+      <div id="packLibraryViewport" class="pack-library-viewport">
+        <div id="packLibraryGrid" class="pack-level-grid pack-library-grid" aria-label="Saved levels available to add"></div>
+      </div>
+      <small class="pack-library-resize-hint">Drag the lower-right edge to resize the library vertically.</small>
+    </section>
+
+    <section id="packBuilderPackWorkspace" class="pack-builder-workspace" aria-labelledby="packBuilderPackHeading">
+      <header class="pack-workspace-heading">
+        <div>
+          <h3 id="packBuilderPackHeading">LEVEL PACK ORDER</h3>
+          <span id="packLevelCount">0 LEVELS</span>
+        </div>
+        <p>Drag cards to reorder them. The numbered order is the published order.</p>
+      </header>
+
+      <div class="pack-metadata-grid">
+        <label>PACK TITLE<input id="packTitleInput" type="text" maxlength="64" placeholder="Untitled Pack"></label>
+        <label>PACK AUTHOR<input id="packAuthorInput" type="text" maxlength="64" placeholder="Default author for every puzzle"></label>
+        <label>GRID COLUMNS
+          <select id="packColumnsSelect" aria-label="Number of columns in the pack grid">
+            <option value="1">1 COLUMN</option>
+            <option value="2">2 COLUMNS</option>
+            <option value="3">3 COLUMNS</option>
+            <option value="4">4 COLUMNS</option>
+            <option value="5">5 COLUMNS</option>
+            <option value="6" selected>6 COLUMNS</option>
+            <option value="7">7 COLUMNS</option>
+            <option value="8">8 COLUMNS</option>
+          </select>
+        </label>
+        <label>ACCENT
+          <select id="packAccentSelect">
+            <option value="black">BLACK</option>
+            <option value="red">RED</option>
+            <option value="blue">BLUE</option>
+            <option value="yellow">YELLOW</option>
+          </select>
+        </label>
+        <label>PUBLISH / EXPORT AS
+          <select id="packDestinationSelect">
+            <option value="boxxy-public">BOXXY PACK SCRIPT · /level-packs/</option>
+            <option value="boxxy-private">PRIVATE DRAFT ARCHIVE · /draft-packs/</option>
+            <option value="xsb">STANDARD XSB COLLECTION</option>
+          </select>
+        </label>
+        <label class="pack-description-field">DESCRIPTION<textarea id="packDescriptionInput" maxlength="240" placeholder="A short description of the collection"></textarea></label>
+      </div>
+
+      <div class="pack-publish-path"><b>SUGGESTED DESTINATION</b><code id="packPublishPath">level-packs/untitled-pack.js</code><small>The builder creates the file; it does not commit to GitHub or expose the pack in the game automatically.</small></div>
+
+      <div id="packOrderGrid" class="pack-level-grid pack-order-grid pack-drop-zone" data-pack-drop-target="pack" aria-label="Ordered level pack"></div>
+
+      <div class="pack-workspace-actions">
+        <button id="packClearBtn" type="button">CLEAR PACK</button>
+        <button id="packCopyBtn" type="button">COPY PACK DATA</button>
+        <button id="packExportBtn" class="pack-primary-action" type="button">BUILD PUBLISH FILE</button>
+      </div>
+    </section>
+
+    <section id="packBuilderDailyWorkspace" class="pack-builder-workspace daily-workspace" aria-labelledby="packBuilderDailyHeading" hidden>
+      <header class="pack-workspace-heading">
+        <div>
+          <h3 id="packBuilderDailyHeading">BOXXY DAILY PUZZLE</h3>
+          <span id="dailyPuzzleCount">0 DAYS</span>
+        </div>
+        <p>Edit one calendar month at a time. The dates stay fixed in a Monday–Sunday calendar so each weekday can have its own puzzle style.</p>
+      </header>
+
+      <div class="daily-settings">
+        <label>MONTH TO EDIT<select id="dailyMonthSelect" aria-label="Month to edit"></select></label>
+        <div><b>PUBLISH TIME</b><strong>00:00 LOCAL TIME</strong><small id="dailyTimezoneLabel"></small></div>
+        <div class="daily-path"><b>UPLOAD DESTINATION</b><code id="dailyPublishPath">daily-puzzles/boxxy-daily-puzzles-2026-08.js</code></div>
+      </div>
+
+      <div id="dailyOrderGrid" class="daily-calendar-grid" aria-label="Daily Puzzle calendar, Monday to Sunday"></div>
+
+      <div class="pack-workspace-actions">
+        <button id="dailyClearBtn" type="button">CLEAR MONTH</button>
+        <button id="dailyCopyBtn" type="button">COPY SCHEDULE</button>
+        <button id="dailyExportBtn" class="pack-primary-action" type="button">EXPORT DAILY SCHEDULE</button>
+      </div>
+    </section>
+  </section>
+</div>
+
+
+<div id="makerSolverModal" class="modal maker-solver-modal" hidden>
+  <section class="maker-solver-card" role="dialog" aria-modal="true" aria-labelledby="makerSolverTitle">
+    <header class="maker-solver-head">
+      <div>
+        <span class="complete-kicker">LEVEL MAKER</span>
+        <h2 id="makerSolverTitle">PUZZLE SOLVER</h2>
+        <p>Uses a Rust/WebAssembly Sokoban engine to seek a complete route, then independently replays every move in BOXXY before attaching the guided solve. It seeks a reliable solution rather than the shortest route.</p>
+      </div>
+      <button id="makerSolverCloseBtn" class="maker-close" type="button" aria-label="Close puzzle solver">×</button>
+    </header>
+
+    <div id="makerSolverProgressWrap" class="maker-solver-progress" hidden>
+      <progress id="makerSolverProgress" max="100">Searching</progress>
+      <div class="maker-solver-progress-line">
+        <strong id="makerSolverProgressLabel">Preparing Rust/WebAssembly engine…</strong>
+        <span id="makerSolverStats"></span>
+      </div>
+      <p>The solver runs in a separate worker. Cancel Search stops it immediately. Solving requires an internet connection because the external Rust/WebAssembly engine is loaded at runtime.</p>
+    </div>
+
+    <section class="maker-solution-import" aria-labelledby="makerSolutionImportLabel">
+      <div class="maker-solution-import-head">
+        <label id="makerSolutionImportLabel" class="maker-solution-label" for="makerSolutionImport">IMPORT A SOLUTION STRING</label>
+        <span>UDLR or arrow symbols; spaces and line breaks are allowed</span>
+      </div>
+      <textarea id="makerSolutionImport" class="maker-solution-import-input" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Paste a solution here, for example: rrUUlldR…"></textarea>
+      <div class="maker-solution-import-actions">
+        <button id="makerSolutionCheckBtn" type="button">CHECK SOLUTION</button>
+        <button id="makerSolutionClearBtn" type="button">CLEAR IMPORT</button>
+      </div>
+    </section>
+
+    <label class="maker-solution-label" for="makerSolutionOutput">VERIFIED SOLUTION</label>
+    <textarea id="makerSolutionOutput" class="maker-solution-output" readonly spellcheck="false" placeholder="A verified UDLR solution will appear here."></textarea>
+    <p id="makerSolverStatus" class="maker-solver-status" aria-live="polite">Ready to solve the current editor puzzle or check an imported solution.</p>
+
+    <div class="maker-solver-actions">
+      <button id="makerSolverStartBtn" class="maker-solver-start" type="button">SOLVE THIS PUZZLE</button>
+      <button id="makerSolverCancelBtn" type="button" hidden>CANCEL SEARCH</button>
+      <button id="makerSolverCopyBtn" type="button" disabled>COPY STRING</button>
+      <button id="makerSolverApplyBtn" type="button" disabled>APPLY TO PUZZLE</button>
+    </div>
+  </section>
+</div>
+
+<button id="autoSolveBtn" type="button" hidden tabindex="-1" aria-hidden="true">PLAY SOLUTION</button>
+
+<div id="legalModal" class="modal legal-modal" hidden>
+  <section class="legal-card" role="dialog" aria-modal="true" aria-labelledby="legalTitle">
+    <header class="legal-modal-head">
+      <div>
+        <span>BOXXY · PUSHBOX PUZZLE</span>
+        <h2 id="legalTitle">LEGAL</h2>
+      </div>
+      <button id="legalCloseBtn" class="legal-close" type="button" aria-label="Close legal information">×</button>
+    </header>
+    <div class="legal-modal-scroll">
+      <p class="legal-intro">Plain-English information about ownership, permitted use, privacy and playing BOXXY.</p>
+
+      <section class="legal-section legal-notice">
+        <h3>Ownership and copyright</h3>
+        <p><strong>BOXXY © 2026 Sam Cornwell. All rights reserved.</strong></p>
+        <p>BOXXY, its original artwork, characters, presentation and original collection of 50 puzzles belong to Sam Cornwell. BOXXY is not released as an open-source project, and its source code is not offered for public use.</p>
+      </section>
+
+      <div class="legal-grid">
+        <section class="legal-section">
+          <h3>Permitted use</h3>
+          <p>You may play and share BOXXY for personal and other non-commercial use. You may not sell, commercially exploit, republish, redistribute or reuse BOXXY, its code or its original assets without written permission from Sam Cornwell.</p>
+        </section>
+        <section class="legal-section">
+          <h3>Free to play</h3>
+          <p>BOXXY is currently free to play, with no advertising and no charge to the player. Features, availability and these arrangements may change, or BOXXY may be withdrawn, without notice.</p>
+        </section>
+        <section class="legal-section">
+          <h3>Puzzle collections</h3>
+          <p>The original 50 BOXXY levels are exclusive to BOXXY. Additional puzzle packs may include work by other puzzle authors. BOXXY respects those authors and credits their names on the relevant puzzle pack where applicable.</p>
+          <p><strong>More puzzles are coming soon.</strong></p>
+        </section>
+        <section class="legal-section">
+          <h3>For players of all ages</h3>
+          <p>BOXXY is a puzzle game for anyone who enjoys Sokoban, brain teasers, memory practice and problem-solving.</p>
+          <p class="legal-small">BOXXY is not a medical product or treatment and makes no claim to prevent, diagnose, treat or improve dementia or any other medical condition.</p>
+        </section>
+      </div>
+
+      <section class="legal-section">
+        <h3>Privacy, analytics and progress</h3>
+        <p>BOXXY does not use user accounts, advertising or session recordings, and it does not ask PostHog to identify you.</p>
+        <p>BOXXY uses PostHog, hosted in the European Union, to measure visits and a small set of gameplay events: opening the game, choosing a puzzle pack, starting or restarting a level, completing a level and pressing next level. A completion event may include the puzzle pack, level number, moves, pushes, time taken, whether a guided solve was used and screen orientation.</p>
+        <p>PostHog is configured in cookieless mode. It does not store BOXXY analytics identifiers in cookies, local storage or session storage. It estimates visitors using a privacy-preserving hash calculated on PostHog's servers. BOXXY does not send puzzle layouts, puzzle links, typed puzzle names, email addresses or other entered text. URL query strings and fragments are removed before analytics events are sent.</p>
+        <p>Your game progress and settings remain stored locally by your browser on your own device and are not sent as analytics. Clearing browser data, changing browser or changing device may remove that information. BOXXY cannot see it, transfer it or restore it for you.</p>
+        <p>PostHog receives the ordinary technical information needed to deliver and measure a web request, such as browser and device information, page path and referrer. BOXXY asks PostHog to respect supported Do Not Track signals. You can read <a href="https://posthog.com/privacy" target="_blank" rel="noopener">PostHog's privacy information</a>.</p>
+        <p>If you contact BOXXY by email or make a prize claim, the information you choose to send will be used to deal with that message or claim.</p>
+      </section>
+
+      <section class="legal-section">
+        <h3>No guarantee</h3>
+        <p>BOXXY is provided “as is”. Although care is taken over the game, no promise is made that it will always be error-free, uninterrupted, compatible with every device or permanently available.</p>
+      </section>
+
+      <section class="legal-section">
+        <h3>Thanks</h3>
+        <p>Special thanks to Alan Bacon, Angela May, Harry Cornwell, Stuart Weston, Ryan McKenzie and Beverley for their contributions to testing, gameplay feedback and bug fixes.</p>
+      </section>
+
+      <section class="legal-section legal-contact">
+        <h3>Contact</h3>
+        <p>For legal, privacy, copyright or permission enquiries, email <a href="mailto:archedroof+boxxy@gmail.com">archedroof+boxxy@gmail.com</a>.</p>
+        <p class="legal-version">BOXXY VERSION <span id="legalVersion">—</span> · LAST UPDATED <time id="legalLastUpdated">—</time></p>
+      </section>
+    </div>
+  </section>
+</div>
+
+<button id="legalBtn" class="legal-link" type="button" aria-haspopup="dialog" aria-controls="legalModal">© 2026 SAM CORNWELL · LEGAL</button>
+<audio id="bgMusic" src="assets/audio/cracked-ivory-drift.mp3" preload="auto" autoplay loop playsinline></audio>
+
+<script src="daily-puzzles/boxxy-daily-loader.js?v=217"></script>
+<script src="levels.js?v=200"></script>
+<script src="boxxy.js?v=229"></script>
+<script src="pack-builder.js?v=216"></script>
+<script src="how-to-play.js?v=153"></script>
 </body>
 </html>
