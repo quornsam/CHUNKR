@@ -896,6 +896,51 @@
     }
   }
 
+  /* Interactive chart controls and large-format view. */
+  .chart-shell { min-width: 0; }
+  .chart-toolbar { display: flex; align-items: end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin: 12px 0; }
+  .chart-toolbar-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+  .chart-toolbar-buttons button { width: auto; padding: 8px 10px; font-size: 13px; }
+  .chart-toolbar-buttons button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .chart-time-controls { flex: 1 1 280px; max-width: 480px; min-width: 200px; }
+  .chart-time-controls label { margin-bottom: 5px; }
+  .chart-time-controls input[type="range"] { width: 100%; accent-color: var(--button); }
+  .chart-date-window { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .chart-plot-wrap { position: relative; min-width: 0; }
+  .chart-plot-wrap canvas { cursor: crosshair; touch-action: pan-y; }
+  .chart-plot-wrap canvas.is-grabbing { cursor: grabbing; }
+  .chart-point-info {
+    position: absolute; z-index: 5; width: min(260px, calc(100% - 12px));
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.2); padding: 12px; color: var(--text);
+    font-size: 13px; line-height: 1.55; pointer-events: auto;
+  }
+  .chart-point-info[hidden] { display: none !important; }
+  .chart-point-info .point-title { font-weight: 750; padding-right: 22px; font-size: 14px; }
+  .chart-point-info .point-muted { color: var(--muted); }
+  .chart-point-info button#chartPointEditBtn { margin-top: 8px; width: auto; padding: 6px 10px; }
+  .chart-point-close { position: absolute; right: 5px; top: 5px; width: 28px !important; height: 28px;
+    border: 0; background: transparent; color: var(--text); font-size: 22px; padding: 0; }
+  .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  body.chunkr-theatre-open { overflow: hidden; }
+  .chart-shell.chart-theatre {
+    position: fixed; inset: 0; z-index: 100;
+    padding: 14px; background: var(--panel); display: flex; flex-direction: column;
+    height: 100vh; height: 100dvh; overflow: hidden;
+  }
+  .chart-theatre .chart-toolbar { flex: 0 0 auto; margin: 0 0 10px; }
+  .chart-theatre .chart-plot-wrap { flex: 1 1 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .chart-theatre canvas { width: 100%; height: 100%; object-fit: contain; }
+  .chart-theatre .legend { flex: 0 0 auto; margin-top: 8px; }
+  @media (max-width: 760px) {
+    .chart-toolbar-buttons button { font-size: 12px; padding: 7px 9px; }
+    .chart-time-controls { min-width: 100%; max-width: 100%; }
+    .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stat-value { font-size: 17px; }
+    .chart-theatre { padding: 8px; }
+    .chart-theatre .chart-time-controls { min-width: 0; }
+  }
+  @media (max-width: 430px) { .stats-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -999,10 +1044,34 @@
             <button id="downloadRangePngBtn" class="secondary">Download selected dates</button>
           </div>
         </div>
-        <canvas id="chart" width="3200" height="1800"></canvas>
-        <div class="legend">
-          <span><span class="swatch weight"></span>Weight</span>
-          <span id="doseLegend"></span>
+        <div id="chartShell" class="chart-shell">
+          <div class="chart-toolbar">
+            <div class="chart-toolbar-buttons">
+              <button id="chartZoomInBtn" class="secondary" type="button" title="Show fewer days">Zoom in</button>
+              <button id="chartZoomOutBtn" class="secondary" type="button" title="Show more days">Zoom out</button>
+              <button id="chartPanBackBtn" class="secondary" type="button" title="Move towards earlier readings">◀ Earlier</button>
+              <button id="chartPanForwardBtn" class="secondary" type="button" title="Move towards later readings">Later ▶</button>
+              <button id="chartAllDatesBtn" class="secondary" type="button">All dates</button>
+              <button id="chartTheatreBtn" class="secondary" type="button" aria-pressed="false">Theatre mode</button>
+            </div>
+            <div class="chart-time-controls">
+              <label for="chartTimeSlider">Time visible: <strong id="chartDaysLabel">All dates</strong></label>
+              <input id="chartTimeSlider" type="range" min="1" max="1" value="1" step="1" aria-label="Number of days visible on chart">
+              <div id="chartDateWindow" class="chart-date-window" aria-live="off">All dates</div>
+            </div>
+          </div>
+          <div id="chartPlotWrap" class="chart-plot-wrap">
+            <canvas id="chart" width="3200" height="1800" tabindex="0" aria-label="Weight chart. Tap a point for its readings; drag left or right to scroll dates."></canvas>
+            <div id="chartPointInfo" class="chart-point-info" hidden>
+              <button id="chartPointCloseBtn" type="button" class="chart-point-close" aria-label="Close reading details">×</button>
+              <div id="chartPointInfoText"></div>
+              <button id="chartPointEditBtn" class="secondary" type="button">Edit this entry</button>
+            </div>
+          </div>
+          <div class="legend">
+            <span><span class="swatch weight"></span>Weight</span>
+            <span id="doseLegend"></span>
+          </div>
         </div>
         <div id="statsPanel" class="stats-panel"></div>
       </div>
@@ -1412,10 +1481,14 @@ function renderStats(rows, settings) {
     .filter(r => r.weight !== null)
     .sort((a, b) => a.date - b.date);
 
+  if (!weightRows.length) {
+    statsPanel.innerHTML = `<div class="stat-note">Add a weight reading to see your statistics.</div>`;
+    return;
+  }
+
+  const lowest = weightRows.reduce((min, r) => r.weight < min.weight ? r : min, weightRows[0]);
   if (weightRows.length < 2) {
-    statsPanel.innerHTML = `
-      <div class="stat-note">Add at least two weight readings to show weight-change stats.</div>
-    `;
+    statsPanel.innerHTML = `<div class="stats-grid"><div class="stat-card"><div class="stat-label">Lowest weight so far</div><div class="stat-value">${formatDisplayWeight(lowest.weight, settings.weightUnit)} ${unitWeightLabel(settings.weightUnit)}</div><div class="stat-note">${lowest.dateString}</div></div></div><div class="stat-note">Add a second weight reading for change and average statistics.</div>`;
     return;
   }
 
@@ -1441,6 +1514,11 @@ function renderStats(rows, settings) {
   statsPanel.innerHTML = `
     <div class="stats-grid">
       <div class="stat-card">
+        <div class="stat-label">Lowest weight so far</div>
+        <div class="stat-value">${formatDisplayWeight(lowest.weight, settings.weightUnit)} ${unitWeightLabel(settings.weightUnit)}</div>
+        <div class="stat-note">${lowest.dateString}</div>
+      </div>
+      <div class="stat-card">
         <div class="stat-label">Total weight change</div>
         <div class="stat-value">${formatSignedWeightDelta(deltaKg, settings.weightUnit)}</div>
       </div>
@@ -1455,7 +1533,7 @@ function renderStats(rows, settings) {
         <div class="stat-note">${formatKcal(dailyKcal)} kcal/day · ${formatKcal(weeklyKcal)} kcal/week</div>
       </div>
     </div>
-    <div class="stat-note">Stats use the first and latest weight reading shown. Calorie estimate uses 7,700 kcal per kg of scale change, so water, glycogen and normal fluctuations will skew it.</div>
+    <div class="stat-note">Statistics use your entire saved weight history, regardless of chart zoom. The calorie estimate assumes 7,700 kcal per kg of scale change and can be distorted by water, glycogen and other fluctuations.</div>
   `;
 }
 
@@ -1781,6 +1859,7 @@ function loadFileIntoScreen(title) {
   const settings = mergeSettings(file.settings || DEFAULT_SETTINGS);
 
   csvBox.value = file.csv || EMPTY_CSV;
+  resetChartViewport();
   setDownloadDateDefaults(parseCsv(csvBox.value));
   putSettingsIntoInputs(settings);
   applyPageTheme(settings.theme);
@@ -1890,6 +1969,7 @@ function deleteCurrentFile() {
 }
 
 function initialiseNoFileState() {
+  resetChartViewport();
   activeFileTitle = "";
   csvBox.value = EMPTY_CSV;
   const settings = clone(DEFAULT_SETTINGS);
@@ -2308,10 +2388,211 @@ function formatTick(n) {
   return Math.abs(n - Math.round(n)) < 0.0001 ? String(Math.round(n)) : n.toFixed(1);
 }
 
-function drawEmptyChart(settings, message = "Add your first reading to begin") {
-  if (statsPanel) {
-    statsPanel.innerHTML = `<div class="stat-note">Add at least two weight readings to show weight-change stats.</div>`;
+const CHART_DAY_MS = 86400000;
+
+function chartDayIndex(d) {
+  return Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / CHART_DAY_MS);
+}
+
+function chartDateFromDay(day) {
+  const utc = new Date(day * CHART_DAY_MS);
+  return new Date(utc.getUTCFullYear(), utc.getUTCMonth(), utc.getUTCDate());
+}
+
+function chartDataBounds(rows) {
+  const valid = rows.filter(r => r.weight !== null || r.dose !== null);
+  if (!valid.length) return null;
+  const days = valid.map(r => chartDayIndex(r.date));
+  return { startDay: Math.min(...days), endDay: Math.max(...days) };
+}
+
+function resetChartViewport() {
+  chartViewport = { windowDays: null, startDay: null };
+  hideChartPointInfo();
+}
+
+function getChartViewport(bounds) {
+  if (!bounds) return null;
+  const fullDays = Math.max(1, bounds.endDay - bounds.startDay);
+  if (chartViewport.windowDays === null || chartViewport.windowDays >= fullDays) {
+    chartViewport.windowDays = null;
+    chartViewport.startDay = null;
+    return { startDay: bounds.startDay, endDay: bounds.endDay };
   }
+  const days = Math.max(1, Math.min(fullDays, Math.round(chartViewport.windowDays)));
+  chartViewport.windowDays = days;
+  if (!Number.isFinite(chartViewport.startDay)) chartViewport.startDay = bounds.endDay - days;
+  chartViewport.startDay = Math.max(bounds.startDay, Math.min(bounds.endDay - days, Math.round(chartViewport.startDay)));
+  return { startDay: chartViewport.startDay, endDay: chartViewport.startDay + days };
+}
+
+function updateChartViewControls(bounds, view) {
+  const slider = document.getElementById("chartTimeSlider");
+  if (!slider) return;
+  const daysLabel = document.getElementById("chartDaysLabel");
+  const dateLabel = document.getElementById("chartDateWindow");
+  const buttons = ["chartZoomInBtn", "chartZoomOutBtn", "chartPanBackBtn", "chartPanForwardBtn", "chartAllDatesBtn"];
+  if (!bounds || !view) {
+    slider.disabled = true;
+    daysLabel.textContent = "No dates yet";
+    dateLabel.textContent = "Add a reading to begin";
+    buttons.forEach(id => document.getElementById(id).disabled = true);
+    return;
+  }
+  const fullDays = Math.max(1, bounds.endDay - bounds.startDay);
+  const visibleDays = Math.max(1, view.endDay - view.startDay);
+  slider.disabled = fullDays <= 1;
+  slider.min = "1";
+  slider.max = String(fullDays);
+  slider.value = String(visibleDays);
+  daysLabel.textContent = visibleDays >= fullDays ? "All dates" : `${visibleDays} ${visibleDays === 1 ? "day" : "days"}`;
+  dateLabel.textContent = `${dateKey(chartDateFromDay(view.startDay))} to ${dateKey(chartDateFromDay(view.endDay))}`;
+  document.getElementById("chartZoomInBtn").disabled = visibleDays <= 1;
+  document.getElementById("chartZoomOutBtn").disabled = visibleDays >= fullDays;
+  document.getElementById("chartPanBackBtn").disabled = view.startDay <= bounds.startDay;
+  document.getElementById("chartPanForwardBtn").disabled = view.endDay >= bounds.endDay;
+  document.getElementById("chartAllDatesBtn").disabled = visibleDays >= fullDays;
+}
+
+function changeChartZoom(newDays) {
+  if (!activeFileTitle) return;
+  const bounds = chartDataBounds(parseCsv(csvBox.value));
+  if (!bounds) return;
+  const fullDays = Math.max(1, bounds.endDay - bounds.startDay);
+  const days = Math.max(1, Math.min(fullDays, Math.round(newDays)));
+  const currentView = getChartViewport(bounds);
+  hideChartPointInfo();
+  if (days >= fullDays) {
+    resetChartViewport();
+  } else {
+    const middle = (currentView.startDay + currentView.endDay) / 2;
+    // On first zoom, show the most recent period; later zooms hold the midpoint steady.
+    const firstZoom = chartViewport.windowDays === null;
+    chartViewport.windowDays = days;
+    chartViewport.startDay = firstZoom
+      ? bounds.endDay - days
+      : Math.max(bounds.startDay, Math.min(bounds.endDay - days, Math.round(middle - days / 2)));
+  }
+  drawChart(true);
+}
+
+function panChart(daysDelta) {
+  if (!activeFileTitle) return;
+  const bounds = chartDataBounds(parseCsv(csvBox.value));
+  const view = getChartViewport(bounds);
+  if (!bounds || !view || chartViewport.windowDays === null) return;
+  const lastPossibleStart = bounds.endDay - chartViewport.windowDays;
+  const start = Math.max(bounds.startDay, Math.min(lastPossibleStart, view.startDay + Math.round(daysDelta)));
+  if (start === view.startDay) return;
+  chartViewport.startDay = start;
+  hideChartPointInfo();
+  drawChart(true);
+}
+
+function chartCanvasContents() {
+  const rect = canvas.getBoundingClientRect();
+  let width = rect.width;
+  let height = rect.height;
+  let x = rect.left;
+  let y = rect.top;
+  // Account for letterboxing in the theatre view's object-fit: contain.
+  if (document.getElementById("chartShell").classList.contains("chart-theatre")) {
+    const aspect = canvas.width / canvas.height;
+    if (width / height > aspect) {
+      width = height * aspect;
+      x += (rect.width - width) / 2;
+    } else {
+      height = width / aspect;
+      y += (rect.height - height) / 2;
+    }
+  }
+  return { x, y, width, height };
+}
+
+function chartClientPoint(clientX, clientY) {
+  const box = chartCanvasContents();
+  return {
+    x: (clientX - box.x) / box.width * canvas.width,
+    y: (clientY - box.y) / box.height * canvas.height,
+    box
+  };
+}
+
+function hideChartPointInfo() {
+  selectedChartRow = null;
+  const el = document.getElementById("chartPointInfo");
+  if (el) el.hidden = true;
+}
+
+function showChartPointInfo(clientX, clientY) {
+  if (!activeFileTitle || !chartHitTargets.length) return;
+  const p = chartClientPoint(clientX, clientY);
+  const xScale = p.box.width / canvas.width;
+  const yScale = p.box.height / canvas.height;
+  let best = null;
+  let bestDistance = Infinity;
+  for (const hit of chartHitTargets) {
+    const distance = Math.hypot((hit.x - p.x) * xScale, (hit.y - p.y) * yScale);
+    if (distance < bestDistance) { bestDistance = distance; best = hit; }
+  }
+  if (!best || bestDistance > 30) { hideChartPointInfo(); return; }
+  selectedChartRow = best.row;
+  const weightUnit = weightUnitFromInput();
+  const info = document.getElementById("chartPointInfo");
+  const content = document.getElementById("chartPointInfoText");
+  content.replaceChildren();
+  function addLine(label, value, className) {
+    const el = document.createElement("div");
+    if (className) el.className = className;
+    if (label) {
+      const strong = document.createElement("strong");
+      strong.textContent = label;
+      el.appendChild(strong);
+    }
+    el.appendChild(document.createTextNode(value));
+    content.appendChild(el);
+  }
+  addLine("", best.row.dateString, "point-title");
+  if (best.row.weight !== null) addLine("Weight: ", `${formatDisplayWeight(best.row.weight, weightUnit)} ${unitWeightLabel(weightUnit)}`);
+  if (best.row.dose !== null) addLine("Dose: ", `${best.row.dose} mg`);
+  if (best.row.note) addLine("Note: ", best.row.note, "point-muted");
+  info.hidden = false;
+  const shellBounds = document.getElementById("chartPlotWrap").getBoundingClientRect();
+  const x = clientX - shellBounds.left;
+  const y = clientY - shellBounds.top;
+  const maxLeft = Math.max(6, shellBounds.width - info.offsetWidth - 6);
+  const maxTop = Math.max(6, shellBounds.height - info.offsetHeight - 6);
+  info.style.left = `${Math.max(6, Math.min(maxLeft, x + 14))}px`;
+  info.style.top = `${Math.max(6, Math.min(maxTop, y + 14))}px`;
+}
+
+function editChartSelectedRow() {
+  if (!selectedChartRow) return;
+  const date = selectedChartRow.dateString;
+  if (document.getElementById("chartShell").classList.contains("chart-theatre")) toggleChartTheatre();
+  hideChartPointInfo();
+  const tableRow = [...document.querySelectorAll("#dataTableBody tr")]
+    .find(tr => tr.querySelector(".row-date")?.value === date);
+  if (!tableRow) return;
+  tableRow.scrollIntoView({ behavior: "smooth", block: "center" });
+  const field = tableRow.querySelector(".row-weight") || tableRow.querySelector(".row-date");
+  if (field) field.focus({ preventScroll: true });
+}
+
+function toggleChartTheatre() {
+  const shell = document.getElementById("chartShell");
+  const active = shell.classList.toggle("chart-theatre");
+  document.body.classList.toggle("chunkr-theatre-open", active);
+  const button = document.getElementById("chartTheatreBtn");
+  button.textContent = active ? "Exit theatre" : "Theatre mode";
+  button.setAttribute("aria-pressed", String(active));
+  hideChartPointInfo();
+}
+
+function drawEmptyChart(settings, message = "Add your first reading to begin") {
+  chartHitTargets = [];
+  chartGeometry = null;
+  hideChartPointInfo();
   const W = canvas.width;
   const H = canvas.height;
   ctx.clearRect(0, 0, W, H);
@@ -2354,27 +2635,43 @@ function drawChart(skipTableRender = false) {
 
   const rowsAll = parseCsv(csvBox.value);
   const range = chartRangeOverride;
-  const rows = range
-    ? rowsAll.filter(r => r.date >= range.start && r.date <= range.end)
-    : rowsAll;
   const settings = getSettingsFromInputs();
   applyPageTheme(settings.theme);
-  if (!range) saveCurrentFileFromScreen();
+  if (!range && !skipTableRender) saveCurrentFileFromScreen();
   renderDoseColourControls(rowsAll);
   if (!settings.showDoses && doseLegend) doseLegend.innerHTML = "";
 
+  const dataBounds = chartDataBounds(rowsAll);
+  const view = range
+    ? { startDay: chartDayIndex(range.start), endDay: chartDayIndex(range.end) }
+    : getChartViewport(dataBounds);
+  if (!range) updateChartViewControls(dataBounds, view);
+  const rows = view
+    ? rowsAll.filter(r => chartDayIndex(r.date) >= view.startDay && chartDayIndex(r.date) <= view.endDay)
+    : [];
+
+  const allWeights = rowsAll.filter(r => r.weight !== null);
   const weightRows = rows.filter(r => r.weight !== null);
   const doseRows = settings.showDoses ? rows.filter(r => r.dose !== null) : [];
 
-  if (weightRows.length === 0 || rows.length === 0) {
+  if (!dataBounds || allWeights.length === 0) {
     drawEmptyChart(settings);
-    statusBox.textContent = range
-      ? `No weight readings in selected date range.`
-      : `Saved under "${activeFileTitle}". No data yet. Add a date and weight to begin.`;
-    renderStats(rows, settings);
-    if (!skipTableRender) renderTable(rows);
+    statusBox.textContent = `Saved under "${activeFileTitle}". No weight readings yet.`;
+    renderStats(rowsAll, settings);
+    if (!skipTableRender) renderTable(rowsAll);
     return;
   }
+
+  // Extend the connecting line to the nearest reading on either side of the window.
+  // The graph clips the line to the visible plot; the clickable dots remain in range.
+  let lineWeightRows = weightRows;
+  if (!range && view) {
+    const before = allWeights.filter(r => chartDayIndex(r.date) < view.startDay).slice(-1);
+    const after = allWeights.filter(r => chartDayIndex(r.date) > view.endDay).slice(0, 1);
+    lineWeightRows = [...before, ...weightRows, ...after];
+  }
+  chartHitTargets = [];
+  if (selectedChartRow && !range) hideChartPointInfo();
 
   const W = canvas.width;
   const H = canvas.height;
@@ -2382,9 +2679,9 @@ function drawChart(skipTableRender = false) {
   ctx.fillStyle = settings.colours.overallBg;
   ctx.fillRect(0, 0, W, H);
 
-  const start = rows[0].date;
-  const latest = rows.reduce((max, r) => r.date > max ? r.date : max, rows[0].date);
-  const latestWeight = weightRows[weightRows.length - 1];
+  const start = view.startDay;
+  const latest = view.endDay;
+  const latestWeight = allWeights[allWeights.length - 1];
 
   const yMin = settings.yMin;
   const yMax = settings.yMax;
@@ -2405,11 +2702,12 @@ function drawChart(skipTableRender = false) {
   const plotH = H - margin.top - margin.bottom;
 
   const xScale = d => {
-    const t0 = start.getTime();
-    const t1 = latest.getTime();
-    if (t1 === t0) return plotX + plotW / 2;
-    return plotX + ((d.getTime() - t0) / (t1 - t0)) * plotW;
+    const day = chartDayIndex(d);
+    if (latest === start) return plotX + plotW / 2;
+    return plotX + ((day - start) / (latest - start)) * plotW;
   };
+
+  chartGeometry = { plotX, plotY, plotW, plotH, startDay: start, endDay: latest };
 
   const yScale = kg => plotY + ((yMax - kg) / (yMax - yMin)) * plotH;
 
@@ -2457,8 +2755,10 @@ function drawChart(skipTableRender = false) {
     ctx.stroke();
   }
 
-  const tickDate = new Date(start.getFullYear(), start.getMonth() + 1, 1);
-  while (tickDate <= latest) {
+  const tickDate = chartDateFromDay(start);
+  tickDate.setDate(1);
+  tickDate.setMonth(tickDate.getMonth() + 1);
+  while (chartDayIndex(tickDate) <= latest) {
     const x = xScale(tickDate);
     ctx.beginPath();
     ctx.moveTo(x, plotY);
@@ -2473,6 +2773,14 @@ function drawChart(skipTableRender = false) {
     const key = doseKey(r.dose);
     const colour = settings.doseColours[key] || automaticDoseColour(r.dose, settings.theme);
     drawDashedLine(ctx, x, plotY, plotY + plotH, colour, doseLineWidth(r.dose), doseLineDash(r.dose));
+    // Distinct clickable marker at the top of each dose line.
+    ctx.save();
+    ctx.fillStyle = colour;
+    ctx.beginPath();
+    ctx.arc(x, plotY + 16, 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    chartHitTargets.push({ row: r, x, y: plotY + 16, kind: "dose" });
   }
 
   ctx.save();
@@ -2510,9 +2818,11 @@ function drawChart(skipTableRender = false) {
   ctx.font = "26px system-ui, sans-serif";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
-  const labelDate = new Date(start.getFullYear(), start.getMonth(), 1);
-  while (labelDate <= latest) {
-    if (labelDate >= start) {
+  const labelDate = chartDateFromDay(start);
+  labelDate.setDate(1);
+  const visibleSpan = latest - start;
+  while (visibleSpan > 50 && chartDayIndex(labelDate) <= latest) {
+    if (chartDayIndex(labelDate) >= start) {
       const x = xScale(labelDate);
       ctx.save();
       ctx.translate(x, plotY + plotH + 42);
@@ -2520,9 +2830,29 @@ function drawChart(skipTableRender = false) {
       ctx.fillText(dateKey(labelDate), 0, 0);
       ctx.restore();
     }
-    labelDate.setMonth(labelDate.getMonth() + 1);
+    if (visibleSpan > 400) labelDate.setMonth(labelDate.getMonth() + 3);
+    else labelDate.setMonth(labelDate.getMonth() + 1);
   }
   ctx.restore();
+
+  if (latest - start <= 50) {
+    ctx.save();
+    ctx.fillStyle = settings.colours.text;
+    ctx.font = "22px system-ui, sans-serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    const step = latest - start <= 14 ? 2 : 7;
+    for (let day = start; day <= latest; day += step) {
+      const d = chartDateFromDay(day);
+      const x = xScale(d);
+      ctx.save();
+      ctx.translate(x, plotY + plotH + 40);
+      ctx.rotate(-Math.PI / 4);
+      ctx.fillText(dateKey(d), 0, 0);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
 
   ctx.save();
   ctx.beginPath();
@@ -2534,7 +2864,7 @@ function drawChart(skipTableRender = false) {
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
   ctx.beginPath();
-  weightRows.forEach((r, i) => {
+  lineWeightRows.forEach((r, i) => {
     const x = xScale(r.date);
     const y = yScale(r.weight);
     if (i === 0) ctx.moveTo(x, y);
@@ -2547,8 +2877,9 @@ function drawChart(skipTableRender = false) {
     const x = xScale(r.date);
     const y = yScale(r.weight);
     ctx.beginPath();
-    ctx.arc(x, y, 5.6, 0, Math.PI * 2);
+    ctx.arc(x, y, 12, 0, Math.PI * 2);
     ctx.fill();
+    chartHitTargets.push({ row: r, x, y, kind: "weight" });
   }
   ctx.restore();
 
@@ -2572,7 +2903,7 @@ function drawChart(skipTableRender = false) {
   ctx.font = "48px system-ui, sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  const title = settings.title.replaceAll("[latest date]", dateKey(latest));
+  const title = settings.title.replaceAll("[latest date]", rowsAll[rowsAll.length - 1].dateString);
   ctx.fillText(title, W / 2, 20);
   ctx.restore();
 
@@ -2586,11 +2917,11 @@ function drawChart(skipTableRender = false) {
   ctx.fillText(`Weight (${unitWeightLabel(settings.weightUnit)})`, 0, 0);
   ctx.restore();
 
-  statusBox.textContent = `Saved under "${activeFileTitle}". ${weightRows.length} weight readings. ${doseRows.length} dose markers. Latest weight: ${latestWeight.dateString} = ${formatDisplayWeight(latestWeight.weight, settings.weightUnit)}${unitWeightLabel(settings.weightUnit)}.`;
+  statusBox.textContent = `Saved under "${activeFileTitle}". ${allWeights.length} weight readings. Latest weight: ${latestWeight.dateString} = ${formatDisplayWeight(latestWeight.weight, settings.weightUnit)}${unitWeightLabel(settings.weightUnit)}.`;
 
-  renderStats(rows, settings);
+  renderStats(rowsAll, settings);
 
-  if (!skipTableRender) renderTable(rows);
+  if (!skipTableRender) renderTable(rowsAll);
 }
 
 function renderTable(rows) {
@@ -2904,13 +3235,21 @@ function downloadRangePng() {
 
 function downloadPng() {
   if (!requireActiveFile()) return;
-  drawChart(true);
   const rows = parseCsv(csvBox.value);
-  const latest = rows.length ? rows.reduce((max, r) => r.date > max ? r.date : max, rows[0].date) : new Date();
-  const link = document.createElement("a");
-  link.download = `${safeFilename(activeFileTitle)}_${dateKey(latest).replaceAll("-", "")}.png`;
-  link.href = canvas.toDataURL("image/png");
-  link.click();
+  const bounds = chartDataBounds(rows);
+  if (!bounds) {
+    markError("downloadPngBtn", "Add readings before downloading a chart.");
+    return;
+  }
+  withTemporaryChartRange(chartDateFromDay(bounds.startDay), chartDateFromDay(bounds.endDay), () => {
+    const link = document.createElement("a");
+    link.download = `${safeFilename(activeFileTitle)}_${dateKey(chartDateFromDay(bounds.endDay)).replaceAll("-", "")}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  });
 }
 
 function downloadCsv() {
@@ -3014,6 +3353,11 @@ let choonPlayIndex = -1;
 let choonRunId = 0;
 let choonAudioUnlocked = false;
 let chartRangeOverride = null;
+let chartViewport = { windowDays: null, startDay: null };
+let chartHitTargets = [];
+let chartGeometry = null;
+let selectedChartRow = null;
+let chartDrag = null;
 
 function clearChoonTimers() {
   choonTimers.forEach(id => clearTimeout(id));
@@ -3516,6 +3860,107 @@ document.getElementById("nextDayBtn").addEventListener("click", setNextDay);
 document.getElementById("clearFieldsBtn").addEventListener("click", clearFields);
 document.getElementById("downloadPngBtn").addEventListener("click", downloadPng);
 document.getElementById("downloadRangePngBtn").addEventListener("click", downloadRangePng);
+
+// Graph navigation is view-only: never changes the raw CSV or localStorage structure.
+document.getElementById("chartZoomInBtn").addEventListener("click", () => {
+  const bounds = chartDataBounds(parseCsv(csvBox.value));
+  const view = getChartViewport(bounds);
+  if (view) changeChartZoom(Math.max(1, Math.floor((view.endDay - view.startDay) / 1.8)));
+});
+document.getElementById("chartZoomOutBtn").addEventListener("click", () => {
+  const bounds = chartDataBounds(parseCsv(csvBox.value));
+  const view = getChartViewport(bounds);
+  if (view) changeChartZoom(Math.max(1, Math.ceil((view.endDay - view.startDay) * 1.8)));
+});
+document.getElementById("chartPanBackBtn").addEventListener("click", () => {
+  const view = getChartViewport(chartDataBounds(parseCsv(csvBox.value)));
+  if (view) panChart(-Math.max(1, Math.round((view.endDay - view.startDay) / 3)));
+});
+document.getElementById("chartPanForwardBtn").addEventListener("click", () => {
+  const view = getChartViewport(chartDataBounds(parseCsv(csvBox.value)));
+  if (view) panChart(Math.max(1, Math.round((view.endDay - view.startDay) / 3)));
+});
+document.getElementById("chartAllDatesBtn").addEventListener("click", () => {
+  resetChartViewport();
+  drawChart(true);
+});
+document.getElementById("chartTimeSlider").addEventListener("input", e => {
+  changeChartZoom(Number(e.target.value));
+});
+document.getElementById("chartTheatreBtn").addEventListener("click", toggleChartTheatre);
+document.getElementById("chartPointCloseBtn").addEventListener("click", hideChartPointInfo);
+document.getElementById("chartPointEditBtn").addEventListener("click", editChartSelectedRow);
+
+canvas.addEventListener("pointerdown", e => {
+  if (!activeFileTitle) return;
+  if (e.button !== undefined && e.button !== 0) return;
+  const bounds = chartDataBounds(parseCsv(csvBox.value));
+  const view = getChartViewport(bounds);
+  if (!view) return;
+  chartDrag = {
+    pointerId: e.pointerId, clientX: e.clientX, clientY: e.clientY,
+    startDay: view.startDay, visibleDays: Math.max(1, view.endDay - view.startDay),
+    moved: false
+  };
+  if (canvas.setPointerCapture) canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener("pointermove", e => {
+  if (!chartDrag || e.pointerId !== chartDrag.pointerId) return;
+  const delta = e.clientX - chartDrag.clientX;
+  if (Math.abs(delta) > 7 || Math.abs(e.clientY - chartDrag.clientY) > 14) chartDrag.moved = true;
+  if (!chartDrag.moved || chartViewport.windowDays === null) return;
+  const box = chartCanvasContents();
+  if (box.width < 1) return;
+  const bounds = chartDataBounds(parseCsv(csvBox.value));
+  if (!bounds) return;
+  const changedDays = Math.round(-delta / box.width * chartDrag.visibleDays);
+  const maxStart = bounds.endDay - chartDrag.visibleDays;
+  chartViewport.startDay = Math.max(bounds.startDay, Math.min(maxStart, chartDrag.startDay + changedDays));
+  canvas.classList.add("is-grabbing");
+  hideChartPointInfo();
+  drawChart(true);
+});
+canvas.addEventListener("pointerup", e => {
+  if (!chartDrag || e.pointerId !== chartDrag.pointerId) return;
+  const moved = chartDrag.moved;
+  chartDrag = null;
+  canvas.classList.remove("is-grabbing");
+  if (canvas.hasPointerCapture?.(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
+  if (!moved) showChartPointInfo(e.clientX, e.clientY);
+});
+canvas.addEventListener("pointercancel", () => {
+  chartDrag = null;
+  canvas.classList.remove("is-grabbing");
+});
+canvas.addEventListener("wheel", e => {
+  if (!activeFileTitle) return;
+  const bounds = chartDataBounds(parseCsv(csvBox.value));
+  const view = getChartViewport(bounds);
+  if (!view || !bounds) return;
+  // Vertical wheel zooms; shift-wheel scrolls horizontally through the dates.
+  e.preventDefault();
+  const visible = Math.max(1, view.endDay - view.startDay);
+  if (e.shiftKey) panChart(Math.sign(e.deltaY || e.deltaX) * Math.max(1, Math.round(visible * 0.08)));
+  else changeChartZoom(e.deltaY > 0
+    ? Math.max(visible + 1, Math.ceil(visible * 1.18))
+    : Math.max(1, Math.min(visible - 1, Math.floor(visible * 0.82))));
+}, { passive: false });
+canvas.addEventListener("keydown", e => {
+  if (e.key === "Escape") hideChartPointInfo();
+  if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+    e.preventDefault();
+    panChart(e.key === "ArrowLeft" ? -5 : 5);
+  }
+  if (e.key === "+" || e.key === "=") {
+    e.preventDefault(); document.getElementById("chartZoomInBtn").click();
+  }
+  if (e.key === "-") {
+    e.preventDefault(); document.getElementById("chartZoomOutBtn").click();
+  }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && document.getElementById("chartShell").classList.contains("chart-theatre")) toggleChartTheatre();
+});
 document.getElementById("downloadCsvBtn").addEventListener("click", downloadCsv);
 document.getElementById("playChoonBtn").addEventListener("click", playChunkrChoon);
 document.getElementById("stopChoonBtn").addEventListener("click", stopChoon);
